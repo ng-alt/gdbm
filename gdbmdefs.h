@@ -63,7 +63,7 @@ typedef struct {
    directory and the free space in the file.  */
 
 typedef struct {
-	word_t header_magic;  /* 0x13579ace to make sure the header is good. */
+	int   header_magic;  /* 0x13579ace to make sure the header is good. */
 	int   block_size;    /* The  optimal i/o blocksize from stat. */
 	off_t dir;	     /* File address of hash directory table. */
 	int   dir_size;	     /* Size in bytes of the table.  */
@@ -84,7 +84,7 @@ typedef struct {
    key. */
 
 typedef struct {
-	word_t hash_value;	/* The complete 31 bit value. */
+	int   hash_value;	/* The complete 31 bit value. */
 	char  key_start[SMALL];	/* Up to the first SMALL bytes of the key.  */
 	off_t data_pointer;	/* The file address of the key record. The
 				   data record directly follows the key.  */
@@ -125,7 +125,7 @@ typedef struct {
    cache.  */
 
 typedef struct {
-        word_t hash_val;
+        int   hash_val;
 	int   data_size;
 	int   key_size;
 	char *dptr;
@@ -157,11 +157,20 @@ typedef struct {
 	/* Fast_write is set to 1 if no fsyncs are to be done. */
 	int fast_write;
 
+	/* Central_free is set if all free blocks are kept in the header. */
+	int central_free;
+
+	/* Coalesce_blocks is set if we should try to merge free blocks. */
+	int coalesce_blocks;
+
+	/* Whether or not we should do file locking ourselves. */
+	int file_locking;
+
 	/* The fatal error handling routine. */
 	void (*fatal_err) ();
 
 	/* The gdbm file descriptor which is set in gdbm_open.  */
-	int  desc;
+	int desc;
 
 	/* The file header holds information about the database. */
 	gdbm_file_header *header;
@@ -179,7 +188,7 @@ typedef struct {
 	hash_bucket *bucket;
 
 	/* The directory entry used to get the current hash bucket. */
-	word_t bucket_dir;
+	int bucket_dir;
 
 	/* Pointer to the current bucket's cache entry. */
 	cache_elem *cache_entry;

@@ -27,11 +27,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 

@@ -1,24 +1,32 @@
 #### Start of system configuration section. ####
 
 srcdir = @srcdir@
+top_builddir = @srcdir@
 VPATH = @srcdir@
 
 CC = @CC@
+LIBTOOL = @LIBTOOL@
+
+# GDBM 1.8 builds shared library version 2.0
+SHLIB_VER = 2 0 0
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 
+# File ownership and group
+BINOWN = bin
+BINGRP = bin
+
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
-RANLIB = @RANLIB@
 
 DEFS =
 
 # Where the system [n]dbm routines are...
 LIBS = @LIBS@ -lc
 
-# SunOS users might wish to add '-fpcc-struct-return' to CFLAGS. see INSTALL.
+# SunOS 4 users might wish to add '-fpcc-struct-return' to CFLAGS. see INSTALL.
 CFLAGS = -O
 LDFLAGS =
 
@@ -39,12 +47,18 @@ manext = 3
 
 #### End of system configuration section. ####
 
+.SUFFIXES:
+.SUFFIXES: .c .lo .o
+
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(DEFS) -I. -I$(srcdir) $(CFLAGS) $<
 
+.c.lo:
+	$(LIBTOOL) --mode=compile $(CC) -c $(CPPFLAGS) $(DEFS) -I. -I$(srcdir) $(CFLAGS) $<
+
 SHELL = /bin/sh
 
-PROGS = libgdbm.a testgdbm testdbm testndbm tndbm tdbm conv2gdbm
+PROGS = libgdbm.la testgdbm testdbm testndbm tndbm tdbm conv2gdbm
 
 DBM_CF = dbminit.c delete.c fetch.c store.c seq.c close.c
 
@@ -52,8 +66,8 @@ NDBM_CF = dbmopen.c dbmdelete.c dbmfetch.c dbmstore.c dbmseq.c \
 	dbmclose.c dbmdirfno.c dbmpagfno.c dbmrdonly.c
 
 GDBM_CF = gdbmopen.c gdbmdelete.c gdbmfetch.c  gdbmstore.c gdbmclose.c \
-	gdbmreorg.c gdbmseq.c gdbmsync.c gdbmerrno.c gdbmexists.c gdbmsetopt.c \
-	bucket.c falloc.c findkey.c global.c hash.c update.c \
+	gdbmreorg.c gdbmseq.c gdbmsync.c gdbmerrno.c gdbmexists.c gdbmfdesc.c \
+	gdbmsetopt.c bucket.c falloc.c findkey.c global.c hash.c update.c \
 	version.c
 
 TEST_CF = testdbm.c testndbm.c testgdbm.c
@@ -65,9 +79,19 @@ NDBM_OF = dbmopen.o dbmdelete.o dbmfetch.o dbmstore.o dbmseq.o \
 	dbmclose.o dbmdirfno.o dbmpagfno.o dbmrdonly.o
 
 GDBM_OF = gdbmopen.o gdbmdelete.o gdbmfetch.o  gdbmstore.o gdbmclose.o \
-	gdbmreorg.o gdbmseq.o gdbmsync.o gdbmerrno.o gdbmexists.o gdbmsetopt.o \
-	bucket.o falloc.o findkey.o global.o hash.o update.o \
+	gdbmreorg.o gdbmseq.o gdbmsync.o gdbmerrno.o gdbmexists.o gdbmfdesc.o \
+	gdbmsetopt.o bucket.o falloc.o findkey.o global.o hash.o update.o \
 	version.o
+
+DBM_LOF = dbminit.lo delete.lo fetch.lo store.lo seq.lo close.lo
+
+NDBM_LOF = dbmopen.lo dbmdelete.lo dbmfetch.lo dbmstore.lo dbmseq.lo \
+	dbmclose.lo dbmdirfno.lo dbmpagfno.lo dbmrdonly.lo
+
+GDBM_LOF = gdbmopen.lo gdbmdelete.lo gdbmfetch.lo  gdbmstore.lo gdbmclose.lo \
+	gdbmreorg.lo gdbmseq.lo gdbmsync.lo gdbmerrno.lo gdbmexists.lo \
+	gdbmfdesc.lo gdbmsetopt.lo bucket.lo falloc.lo findkey.lo global.lo \
+	hash.lo update.lo version.lo
 
 TEX_F = gdbm.aux gdbm.cp gdbm.dvi gdbm.fn gdbm.ky gdbm.log gdbm.pg \
 	gdbm.toc gdbm.tp gdbm.vr
@@ -76,36 +100,50 @@ TEXI_F = gdbm.info
      
 SRCS = $(DBM_CF) $(NDBM_CF) $(GDBM_CF) $(TEST_CF)
 
-OBJS = $(DBM_OF) $(NDBM_OF) $(GDBM_OF) @ALLOCA@
+OBJS = $(DBM_OF) $(NDBM_OF) $(GDBM_OF)
+
+LOBJS = $(DBM_LOF) $(NDBM_LOF) $(GDBM_LOF)
 
 HDRS = gdbmdefs.h extern.h gdbmerrno.h systems.h dbm.h ndbm.h gdbmconst.h \
 	proto.h
 
 MSCFILES = COPYING ChangeLog Makefile.in README gdbm.3 gdbm.texinfo \
 	gdbm.info NEWS INSTALL gdbm.proto gdbm.proto2 conv2gdbm.c \
-	configure configure.in alloca.c getopt.c getopt.h samp1.cc \
-	autoconf.h.in
+	configure configure.in getopt.c getopt.h samp1.cc \
+	autoconf.h.in install-sh mkinstalldirs config.guess config.sub \
+	aclocal.m4 ltconfig ltmain.sh
 
 DISTFILES = $(SRCS) $(HDRS) $(MSCFILES)
 
-all: libgdbm.a
+all: libgdbm.la
 
 progs: $(PROGS)
 
-install: libgdbm.a gdbm.h gdbm.info
-	$(INSTALL_DATA) libgdbm.a $(libdir)/libgdbm.a
-	$(INSTALL_DATA) gdbm.h $(includedir)/gdbm.h
-	$(INSTALL_DATA) $(srcdir)/gdbm.3 $(man3dir)/gdbm.3
-	$(INSTALL_DATA) $(srcdir)/gdbm.info $(infodir)/gdbm.info
+install: libgdbm.la gdbm.h gdbm.info
+	$(srcdir)/mkinstalldirs $(libdir) $(includedir) $(man3dir) $(infodir)
+	$(LIBTOOL) install -c libgdbm.la $(libdir)/libgdbm.la
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) gdbm.h $(includedir)/gdbm.h
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.3 \
+		$(man3dir)/gdbm.3
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.info \
+		$(infodir)/gdbm.info
 
 install-compat:
-	$(INSTALL_DATA) $(srcdir)/dbm.h $(includedir)/dbm.h
-	$(INSTALL_DATA) $(srcdir/ndbm.h $(includedir)/ndbm.h
+	$(srcdir)/mkinstalldirs $(includedir)
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/dbm.h \
+		$(includedir)/dbm.h
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/ndbm.h \
+		$(includedir)/ndbm.h
 
-libgdbm.a: $(OBJS) gdbm.h
-	rm -f libgdbm.a
-	ar q libgdbm.a $(OBJS)
-	$(RANLIB) libgdbm.a
+#libgdbm.a: $(OBJS) gdbm.h
+#	rm -f libgdbm.a
+#	ar q libgdbm.a $(OBJS)
+#	$(RANLIB) libgdbm.a
+
+libgdbm.la: $(LOBJS) gdbm.h
+	rm -f libgdbm.la
+	$(LIBTOOL) --mode=link $(CC) -o libgdbm.la -rpath $(libdir) \
+		-version-info $(SHLIB_VER) $(LOBJS)
 
 gdbm.h:	gdbm.proto gdbmerrno.h gdbm.proto2
 	rm -f gdbm.h
@@ -115,31 +153,31 @@ gdbm.h:	gdbm.proto gdbmerrno.h gdbm.proto2
 	cat $(srcdir)/gdbm.proto2 >> gdbm.h
 	chmod -w gdbm.h
 
-testgdbm: testgdbm.o libgdbm.a @LIBOBJS@
-	$(CC) $(LDFLAGS) -o testgdbm testgdbm.o libgdbm.a @LIBOBJS@
+testgdbm: testgdbm.o libgdbm.la @LIBOBJS@
+	$(LIBTOOL) $(CC) $(LDFLAGS) -o testgdbm testgdbm.o libgdbm.la @LIBOBJS@
 
-testdbm: testdbm.o libgdbm.a
-	$(CC) $(LDFLAGS) -o testdbm testdbm.o libgdbm.a
+testdbm: testdbm.o libgdbm.la
+	$(LIBTOOL) $(CC) $(LDFLAGS) -o testdbm testdbm.o libgdbm.la
 
-tdbm: testdbm.o libgdbm.a
+tdbm: testdbm.o
 	$(CC) $(LDFLAGS) -o tdbm testdbm.o $(LIBS)
 
 testndbm.o: testndbm.c
 	$(CC) -c -I. -I$(srcdir) $(CFLAGS) $(DEFS) -DGNU $(srcdir)/testndbm.c
 
-testndbm: testndbm.o libgdbm.a
-	$(CC) $(LDFLAGS) -o testndbm testndbm.o libgdbm.a
+testndbm: testndbm.o libgdbm.la
+	$(LIBTOOL) $(CC) $(LDFLAGS) -o testndbm testndbm.o libgdbm.la
 
 tndbm.o: testndbm.c
 	cp $(srcdir)/testndbm.c ./tndbm.c
 	$(CC) -c -I. -I$(srcdir) $(CFLAGS) $(DEFS) ./tndbm.c
 	rm -f ./tndbm.c
 
-tndbm: tndbm.o libgdbm.a
+tndbm: tndbm.o
 	$(CC) $(LDFLAGS) -o tndbm tndbm.o $(LIBS)
 
-conv2gdbm: conv2gdbm.o libgdbm.a @LIBOBJS@
-	$(CC) $(LDFLAGS) -o conv2gdbm conv2gdbm.o $(LIBS) libgdbm.a @LIBOBJS@
+conv2gdbm: conv2gdbm.o libgdbm.la @LIBOBJS@
+	$(LIBTOOL) $(CC) $(LDFLAGS) -o conv2gdbm conv2gdbm.o $(LIBS) libgdbm.la @LIBOBJS@
 
 lintgdbm: 
 	lint $(DEFS) $(LFLAGS) $(DBM_CF) $(NDBM_CF) $(GDBM_CF) testgdbm.c
@@ -158,12 +196,14 @@ gdbm.dvi:
 	$(TEXI2DVI) $(srcdir)/gdbm.texinfo
 
 clean:
-	rm -f $(PROGS) $(TEX_F) *.o core junk*
+	rm -rf $(PROGS) $(TEX_F) *.a *.la *.o *.lo core *.core junk* \
+		.libs _libs
 
 mostlyclean: clean
 
 distclean: clean
-	rm -f Makefile autoconf.h config.status gdbm.h $(TEXI_F) *~
+	rm -f Makefile autoconf.h config.status config.cache config.log \
+		gdbm.h libtool $(TEXI_F) *~
 
 realclean: distclean
 	rm -f TAGS
@@ -204,6 +244,7 @@ dbmdirfno.o:	autoconf.h gdbmdefs.h extern.h
 gdbmclose.o:	autoconf.h gdbmdefs.h 
 gdbmdelete.o:	autoconf.h gdbmdefs.h gdbmerrno.h 
 gdbmfetch.o:	autoconf.h gdbmdefs.h gdbmerrno.h 
+gdbmfdesc.o:	autoconf.h gdbmdefs.h
 gdbmopen.o:	autoconf.h gdbmdefs.h gdbmerrno.h 
 gdbmreorg.o:	autoconf.h gdbmdefs.h gdbmerrno.h extern.h
 gdbmseq.o:	autoconf.h gdbmdefs.h 

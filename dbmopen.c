@@ -28,11 +28,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -70,8 +65,13 @@ dbm_open (file, flags, mode)
 
 
   /* Prepare the correct names of "file.pag" and "file.dir". */
-  pag_file = (char *) alloca (strlen (file)+5);
-  dir_file = (char *) alloca (strlen (file)+5);
+  pag_file = (char *) malloc (strlen (file)+5);
+  dir_file = (char *) malloc (strlen (file)+5);
+  if ((pag_file == NULL) || (dir_file == NULL))
+    {
+      gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
+      return NULL;
+    }
 
   strcpy (pag_file, file);
   strcat (pag_file, ".pag");
@@ -102,7 +102,7 @@ dbm_open (file, flags, mode)
   if (temp_dbf == NULL)
     {
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
-      return NULL;
+      goto done;
     }
 
   /* If the database is new, link "file.dir" to "file.pag". This is done
@@ -114,7 +114,8 @@ dbm_open (file, flags, mode)
 	  {
 	    gdbm_errno = GDBM_FILE_OPEN_ERROR;
 	    gdbm_close (temp_dbf);
-	    return NULL;
+	    temp_dbf = NULL;
+	    goto done;
 	  }
     }
   else
@@ -125,9 +126,13 @@ dbm_open (file, flags, mode)
 	{
 	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
 	  gdbm_close (temp_dbf);
-	  return NULL;
+	  temp_dbf = NULL;
+	  goto done;
 	}
     }
-	    
+
+done:
+  free (pag_file);
+  free (dir_file);
   return temp_dbf;
 }

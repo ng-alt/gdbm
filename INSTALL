@@ -1,8 +1,8 @@
 Installation Notes
 
-SunOS:
+SunOS 4:
 
-	The SunOS stock compiler returns structures in a manner different
+	The SunOS 4 stock compiler returns structures in a manner different
 from the method GCC uses.  If you are compiling this library using GCC,
 and are linking in any other libraries that return structures and are not
 compiled with GCC (such as system libraries), you must compile this
@@ -13,14 +13,6 @@ library, and your entire application, with the -fpcc-struct-return flag.
 GCC, it is safe to compile without the flag.
 
 	If you're using pure stock Sun CC, disregard the above.
-
-alloca:
-
-	GDBM uses alloca, heavily.  If your machine does not support
-alloca, GDBM will provide one, and embed it within the library.
-Depending on your application, this is not always a good thing, and you
-must remove the alloca.c and alloca.o references from the configured
-Makefile if you wish this not to take place.
 
 ndbm/dbm:
 

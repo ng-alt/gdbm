@@ -1,3 +1,11 @@
+CHANGES from 1.7.3 to 1.8
+  1.  Added GDBM_CENTFREE functionality and option.
+  2.  Added GDBM_COALESCEBLKS functionality and option.
+  3.  Added GDBM_NOLOCK flag.
+  4.  Made ``fast'' mode the default, making GDBM_FAST obsolete, and adding
+      the GDBM_SYNC flag and GDBM_SYNCMODE option.
+  5.  Switched to building with libtool.
+
 CHANGES from 1.7.2 to 1.7.3
   1.  Fixed a couple of last minute problems. (Namely, no autoconf.h in
       version.c, and no GDBM_FASTMODE in gdbm.h!)

@@ -27,11 +27,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -50,7 +45,7 @@ gdbm_fetch (dbf, key)
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */
   char  *find_data;		/* Returned from find_key. */
-  word_t   hash_val;		/* Returned from find_key. */
+  int    hash_val;		/* Returned from find_key. */
 
   /* Set the default return value. */
   return_val.dptr  = NULL;

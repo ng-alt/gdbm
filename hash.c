@@ -38,15 +38,11 @@
    to find the home position of the element by taking the value modulo the
    bucket hash table size. */
 
-word_t
+int
 _gdbm_hash (key)
      datum key;
 {
-#if LONG_64_BITS || !INT_16_BITS
   unsigned int value;	/* Used to compute the hash value.  */
-#else
-  unsigned long value;	/* Used to compute the hash value.  */
-#endif
   int   index;		/* Used to cycle through random values. */
 
 
@@ -58,5 +54,5 @@ _gdbm_hash (key)
   value = (1103515243 * value + 12345) & 0x7FFFFFFF;  
 
   /* Return the value. */
-  return((word_t) value);
+  return((int) value);
 }

@@ -18,7 +18,7 @@
     the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
     You may contact the author by:
-       e-mail:  phil@wwu.edu
+       e-mail:  phil@cs.wwu.edu
       us-mail:  Philip A. Nelson
                 Computer Science Department
                 Western Washington University
@@ -26,14 +26,6 @@
        
 *************************************************************************/
 
-
-#ifdef __GNUC__
-#define alloca	__builtin_alloca
-#else	/* not __GNUC__ */
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif	/* not HAVE_ALLOCA_H */
-#endif 	/* not __GNUC__ */
 
 /* Include all system headers first. */
 #if HAVE_SYS_TYPES_H
@@ -151,9 +143,6 @@
 #define TRUNCATE(dbf) close( open (dbf->name, O_RDWR|O_TRUNC, mode));
 #endif
 
-/* Do we have 32bit or 64bit longs? */
-#if LONG_64_BITS || !INT_16_BITS
-typedef int word_t;
-#else
-typedef long word_t;
+#ifndef STDERR_FILENO
+#define STDERR_FILENO 2
 #endif

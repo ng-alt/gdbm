@@ -1,7 +1,7 @@
-/* dbmrdonly.c - Check to see if a database is read only, NDBM style. */
+/* gdbfdesc.c - return the file descriptor associated with the database. */
 
 /*  This file is part of GDBM, the GNU data base manager, by Philip A. Nelson.
-    Copyright (C) 1993  Free Software Foundation, Inc.
+    Copyright (C) 1999  Free Software Foundation, Inc.
 
     GDBM is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,12 +35,11 @@
 
 #include "gdbmdefs.h"
 
-
-/* not much of a routine, but should be a function for compatibility. */
+/* Return the file number of the DBF file. */
 
 int
-dbm_rdonly(dbf)
-    gdbm_file_info *dbf;
+gdbm_fdesc(dbf)
+      gdbm_file_info	*dbf;
 {
-  return (dbf->read_write == GDBM_READER);
+  return (dbf->desc);
 }

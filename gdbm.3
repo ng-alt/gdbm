@@ -1,5 +1,5 @@
-.ds ve 1.7.3
-.TH GDBM 3 5/19/94
+.ds ve 1.8
+.TH GDBM 3 5/19/99
 .SH NAME
 GDBM - The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
 compatability. (Version \*(ve.)
@@ -108,6 +108,12 @@ compatability. (Version \*(ve.)
 .B int *value;
 .br
 .B int size;
+.PP
+.B int
+.br
+.B gdbm_fdesc (dbf)
+.br
+.B GDBM_FILE dbf;
 .PP
 .PP
 .B DBM Compatability routines:
@@ -277,12 +283,15 @@ writer - if database does not exist create new one
 .B GDBM_NEWDB
 writer - create new database regardless if one exists
 .br
-For the last three (writers of the database) there is an extra value that
-that can be added to \fIread_write\fR by bitwise or,
-.B GDBM_FAST.
-This requests that gdbm write the database with no disk file syncronization.
-This allows faster writes, but may produce an inconsistant database in
-the event of abnormal termination of the writer.
+For the last three (writers of the database) the following may be added
+added to \fIread_write\fR by bitwise or:
+.B GDBM_SYNC,
+which causes all database operations to be synchronized to the disk, and
+.B GDBM_NOLOCK,
+which prevents the library from performing any locking on the database file.
+The option
+.B GDBM_FAST
+is now obsolete, since gdbm defaults to no-sync mode.
 .br
 \fIMode\fR is the file mode (see \fBchmod(2)\fR and \fBopen(2)\fR) if the
 file is created. \fI(*Fatal_func) ()\fR is a function for dbm to call
@@ -319,7 +328,7 @@ insert only, generate an error if key exists
 .B GDBM_REPLACE
 replace contents if key exists.
 
-If a reader calls \fBgdbm_store, the return value will be  -1.
+If a reader calls \fBgdbm_store\fR, the return value will be  -1.
 If called with GDBM_INSERT and \fIkey\fR is in the database, the return
 value will be 1.  Otherwise, the return value is 0.
 
@@ -418,8 +427,9 @@ used by the \fBgdbm\fR file, this routine will reorganize the database.
 using this reorganization.  (Deleted file space will be reused.)
 
 
-If you use the \fBGDBM_FAST\fR value in your \fBgdbm_open\fR call, 
-the following routine can be used to guarantee that the database is
+Unless your database was opened with the GDBM_SYNC flag, gdbm does not
+wait for writes to be flushed to the disk before continuing.
+The following routine can be used to guarantee that the database is
 physically written to the disk file.
 
   gdbm_sync ( dbf )
@@ -432,8 +442,8 @@ To convert a \fBgdbm\fR error code into English text, use this routine:
 
   ret = gdbm_strerror ( errno )
 
-Where \fBerrno\fR is of type \fBgdbm_error\fR, usually the global
-variable \fBgdbm_errno\fR.  The appropiate phrase is returned.
+Where \fIerrno\fR is of type \fIgdbm_error\fR, usually the global
+variable \fIgdbm_errno\fR.  The appropiate phrase is returned.
 
 
 \fBGdbm\fR now supports the ability to set certain options on an
@@ -441,24 +451,44 @@ already open database.
 
   ret = gdbm_setopt ( dbf, option, value, size )
 
-Where \fBdbf\fR is the return value from a previous call to \fBgdbm_open\fR,
-and \fBoption\fR specifies which option to set.  The valid options are
+Where \fIdbf\fR is the return value from a previous call to \fBgdbm_open\fR,
+and \fIoption\fR specifies which option to set.  The valid options are
 currently:
 
-  GDBM_CACHESIZE - Set the size of the internal bucket
-  cache. This option may only be set once on each \fBGDBM_FILE\fR
+  \fBGDBM_CACHESIZE\fR - Set the size of the internal bucket
+  cache. This option may only be set once on each \fIGDBM_FILE\fR
   descriptor, and is set automatically to 100 upon the first
   access to the database.
 
-  GDBM_FASTMODE - Set \fBfast mode\fR to either on or off.  This
+  \fBGDBM_FASTMODE\fR - Set \fBfast mode\fR to either on or off.  This
   allows \fBfast mode\fR to be toggled on an already open and
-  active database. \fBvalue\fR (see below) should be set to either
+  active database. \fIvalue\fR (see below) should be set to either
+  TRUE or FALSE.  \fIThis option is now obsolete.\fR
+
+  \fBGDBM_SYNCMODE\fR - Turn on or off file system synchronization operations.
+  This setting defaults to off; \fIvalue\fR (see below) should be set to either
   TRUE or FALSE.
 
-\fBvalue\fR is the value to set \fBoption\fR to, specified as an integer
-pointer.  \fBsize\fR is the size of the data pointed to by \fBvalue\fR.
+  \fBGDBM_CENTFREE\fR - Set \fBcentral free block pool\fR to either on or off.
+  The default is off, which is how previous versions of \fBGdbm\fR
+  handled free blocks. If set, this option causes all subsequent free
+  blocks to be placed in the \fBglobal\fR pool, allowing (in thoery)
+  more file space to be reused more quickly. \fIvalue\fR (see below) should
+  be set to either TRUE or FALSE.
+  \fINOTICE: This feature is still under study.\fR
+
+  \fBGDBM_COALESCEBLKS\fR - Set \fBfree block merging\fR to either on or off.
+  The default is off, which is how previous versions of \fBGdbm\fR
+  handled free blocks. If set, this option causes adjacent free blocks
+  to be merged. This can become a CPU expensive process with time, though,
+  especially if used in conjunction with \fBGDBM_CENTFREE\fR. \fIvalue\fR
+  (see below) should be set to either TRUE or FALSE.
+  \fINOTICE: This feature is still under study.\fR
+
+\fIvalue\fR is the value to set \fIoption\fR to, specified as an integer
+pointer.  \fIsize\fR is the size of the data pointed to by \fIvalue\fR.
 The return value will be -1 upon failure, or 0 upon success.  The global
-variable \fBgdbm_errno\fR will be set upon failure.
+variable \fIgdbm_errno\fR will be set upon failure.
 
 For instance, to set a database to use a cache of 10, after opening it
 with \fBgdbm_open\fR, but prior to accessing it in any way, the following
@@ -469,13 +499,24 @@ code could be used:
   ret = gdbm_setopt( dbf, GDBM_CACHESIZE, &value, sizeof(int));
 
 
+If the database was opened with the \fBGDBM_NOLOCK\fR flag, the user may
+wish to perform their own file locking on the database file in order to
+prevent multiple writers operating on the same file simultaneously.
+
+In order to support this, the \fIgdbm_fdesc\fR routine is provided.
+
+  ret = gdbm_fdesc ( dbf )
+
+Where \fIdbf\fR is the return value from a previous call to \fBgdbm_open\fR.
+The return value will be the file descriptor of the database.
+
 The following two external variables may be useful:
 
-\fBgdbm_errno\fR is the variable that contains more information about
+\fIgdbm_errno\fR is the variable that contains more information about
 gdbm errors.  (gdbm.h has the definitions of the error values and
 defines gdbm_errno as an external variable.)
 .br
-\fBgdbm_version\fR is the string containing the version information.
+\fIgdbm_version\fR is the string containing the version information.
 
 
 There are a few more things of interest.  First, \fBgdbm\fR files are
@@ -504,8 +545,8 @@ parameter to the compile line, e.g.:
 dbm, ndbm
 
 .SH AUTHOR
-by Philip A. Nelson.
-Copyright (C) 1990  Free Software Foundation, Inc.
+by Philip A. Nelson and Jason Downs.
+Copyright (C) 1990 - 1999 Free Software Foundation, Inc.
 
 GDBM is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -521,9 +562,9 @@ You should have received a copy of the GNU General Public License
 along with GDBM; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-You may contact the author by:
+You may contact the original author by:
 .br
-   e-mail:  phil@wwu.edu
+   e-mail:  phil@cs.wwu.edu
 .br
   us-mail:  Philip A. Nelson
 .br
@@ -535,5 +576,5 @@ Bellingham, WA 98226
 
 You may contact the current maintainer by:
 .br
-   e-mail:  downsj@CSOS.ORST.EDU
+   e-mail:  downsj@downsj.com
 

@@ -27,61 +27,49 @@
 *************************************************************************/
 
 
-/* Define our _PROTOTYPE macro. */
-
-#ifdef _ARGS
-#undef _ARGS
-#endif
-
+#ifndef __P
 #ifdef __STDC__
-#define _ARGS(args) args
+#define __P(args) args
 #else
-#define _ARGS(args) ()
+#define __P(args) ()
 #endif
-
+#endif
 
 /* From bucket.c */
-void _gdbm_new_bucket    _ARGS((gdbm_file_info *dbf, hash_bucket *bucket,
-				int bits ));
-void _gdbm_get_bucket    _ARGS((gdbm_file_info *dbf, word_t dir_index ));
-void _gdbm_split_bucket  _ARGS((gdbm_file_info *dbf, word_t next_insert ));
-void _gdbm_write_bucket  _ARGS((gdbm_file_info *dbf, cache_elem *ca_entry ));
+void _gdbm_new_bucket    __P((gdbm_file_info *, hash_bucket *, int));
+void _gdbm_get_bucket    __P((gdbm_file_info *, int));
+void _gdbm_split_bucket  __P((gdbm_file_info *, int));
+void _gdbm_write_bucket  __P((gdbm_file_info *, cache_elem *));
 
 /* From falloc.c */
-off_t _gdbm_alloc       _ARGS((gdbm_file_info *dbf, int num_bytes ));
-void _gdbm_free         _ARGS((gdbm_file_info *dbf, off_t file_adr,
-			       int num_bytes ));
-int  _gdbm_put_av_elem  _ARGS((avail_elem new_el, avail_elem av_table [],
-			       int *av_count ));
+off_t _gdbm_alloc       __P((gdbm_file_info *, int));
+void _gdbm_free         __P((gdbm_file_info *, off_t, int));
+int  _gdbm_put_av_elem  __P((avail_elem, avail_elem [], int *, int));
 
 /* From findkey.c */
-char *_gdbm_read_entry  _ARGS((gdbm_file_info *dbf, int elem_loc));
-int _gdbm_findkey       _ARGS((gdbm_file_info *dbf, datum key,  char **dptr,
-			       word_t *new_hash_val));
+char *_gdbm_read_entry  __P((gdbm_file_info *, int));
+int _gdbm_findkey       __P((gdbm_file_info *, datum, char **, int *));
 
 /* From hash.c */
-word_t _gdbm_hash _ARGS((datum key ));
+int _gdbm_hash __P((datum));
 
 /* From update.c */
-void _gdbm_end_update   _ARGS((gdbm_file_info *dbf ));
-int _gdbm_fatal         _ARGS((gdbm_file_info *dbf, char *val ));
+void _gdbm_end_update   __P((gdbm_file_info *));
+int _gdbm_fatal         __P((gdbm_file_info *, char *));
 
 /* From gdbmopen.c */
-int _gdbm_init_cache	_ARGS((gdbm_file_info *dbf, int size));
+int _gdbm_init_cache	__P((gdbm_file_info *, int));
 
 /* The user callable routines.... */
-void  gdbm_close	  _ARGS((gdbm_file_info *dbf ));
-int   gdbm_delete	  _ARGS((gdbm_file_info *dbf, datum key ));
-datum gdbm_fetch	  _ARGS((gdbm_file_info *dbf, datum key ));
-gdbm_file_info *gdbm_open _ARGS((char *file, int block_size,
-				 int flags, int mode,
-				 void (*fatal_func) (void)));
-int   gdbm_reorganize	  _ARGS((gdbm_file_info *dbf ));
-datum gdbm_firstkey       _ARGS((gdbm_file_info *dbf ));
-datum gdbm_nextkey        _ARGS((gdbm_file_info *dbf, datum key ));
-int   gdbm_store          _ARGS((gdbm_file_info *dbf, datum key,
-				 datum content, int flags ));
-int   gdbm_exists	  _ARGS((gdbm_file_info *dbf, datum key));
-void  gdbm_sync		  _ARGS((gdbm_file_info *dbf));
-int   gdbm_setopt	  _ARGS((gdbm_file_info *dbf, int optflag,
-				 int *optval, int optlen));
+void  gdbm_close	  __P((gdbm_file_info *));
+int   gdbm_delete	  __P((gdbm_file_info *, datum));
+datum gdbm_fetch	  __P((gdbm_file_info *, datum));
+gdbm_file_info *gdbm_open __P((char *, int, int, int, void (*) (void)));
+int   gdbm_reorganize	  __P((gdbm_file_info *));
+datum gdbm_firstkey       __P((gdbm_file_info *));
+datum gdbm_nextkey        __P((gdbm_file_info *, datum));
+int   gdbm_store          __P((gdbm_file_info *, datum, datum, int));
+int   gdbm_exists	  __P((gdbm_file_info *, datum));
+void  gdbm_sync		  __P((gdbm_file_info *));
+int   gdbm_setopt	  __P((gdbm_file_info *, int, int *, int));
+int   gdbm_fdesc	  __P((gdbm_file_info *));

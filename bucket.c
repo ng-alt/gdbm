@@ -65,7 +65,7 @@ _gdbm_new_bucket (dbf, bucket, bits)
 void
 _gdbm_get_bucket (dbf, dir_index)
      gdbm_file_info *dbf;
-     word_t dir_index;
+     int dir_index;
 {
   off_t bucket_adr;	/* The address of the correct hash bucket.  */
   int   num_bytes;	/* The number of bytes read. */
@@ -127,7 +127,7 @@ _gdbm_get_bucket (dbf, dir_index)
 void
 _gdbm_split_bucket (dbf, next_insert)
      gdbm_file_info *dbf;
-     word_t next_insert;
+     int next_insert;
 {
   hash_bucket *bucket[2]; 	/* Pointers to the new buckets. */
 
@@ -252,7 +252,7 @@ _gdbm_split_bucket (dbf, next_insert)
 	  /* The avail is full, move the first one to bucket[1]. */
 	  _gdbm_put_av_elem (dbf->bucket->bucket_avail[0],
 			     bucket[1]->bucket_avail,
-			     &bucket[1]->av_count);
+			     &bucket[1]->av_count, FALSE);
 	  index = 1;
 	  bucket[0]->av_count --;
 	}
@@ -295,7 +295,7 @@ _gdbm_split_bucket (dbf, next_insert)
 	  dbf->cache_entry = &dbf->bucket_cache[cache_0];
 	  _gdbm_put_av_elem (old_bucket,
 			     bucket[1]->bucket_avail,
-			     &bucket[1]->av_count);
+			     &bucket[1]->av_count, FALSE);
 	}
       else
 	{
@@ -303,7 +303,7 @@ _gdbm_split_bucket (dbf, next_insert)
 	  dbf->cache_entry = &dbf->bucket_cache[cache_1];
 	  _gdbm_put_av_elem (old_bucket,
 			     bucket[0]->bucket_avail,
-			     &bucket[0]->av_count);
+			     &bucket[0]->av_count, FALSE);
 	}
       
     }

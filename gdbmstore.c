@@ -27,11 +27,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -58,18 +53,13 @@ gdbm_store (dbf, key, content, flags)
      datum content;
      int flags;
 {
-  word_t new_hash_val;		/* The new hash value. */
+  int  new_hash_val;		/* The new hash value. */
   int  elem_loc;		/* The location in hash bucket. */
   off_t file_adr;		/* The address of new space in the file.  */
   off_t file_pos;		/* The position after a lseek. */
   int  num_bytes;		/* Used for error detection. */
   off_t free_adr;		/* For keeping track of a freed section. */
   int  free_size;
-
-  /* char *write_data; */	/* To write both key and data in 1 call. */
-  /* char *src;	*/		/* Used to prepare write_data. */
-  /* char *dst;	*/		/* Used to prepare write_data. */
-  /* int   cnt;	*/		/* Counter for loops to fill write_data. */
   int   new_size;		/* Used in allocating space. */
   char *temp;			/* Used in _gdbm_findkey call. */
 
@@ -96,6 +86,9 @@ gdbm_store (dbf, key, content, flags)
      A side effect loads the correct bucket and calculates the hash value. */
   elem_loc = _gdbm_findkey (dbf, key, &temp, &new_hash_val);
 
+  /* Initialize these. */
+  file_adr = 0;
+  new_size = key.dsize + content.dsize;
 
   /* Did we find the item? */
   if (elem_loc != -1)
@@ -106,7 +99,15 @@ gdbm_store (dbf, key, content, flags)
 	  free_adr = dbf->bucket->h_table[elem_loc].data_pointer;
 	  free_size = dbf->bucket->h_table[elem_loc].key_size
 	              + dbf->bucket->h_table[elem_loc].data_size;
-	  _gdbm_free (dbf, free_adr, free_size);
+	  if (free_size != new_size)
+	    {
+	      _gdbm_free (dbf, free_adr, free_size);
+	    }
+	  else
+	    {
+	      /* Just reuse the same address! */
+	      file_adr = free_adr;
+	    }
 	}
       else
 	{
@@ -118,8 +119,10 @@ gdbm_store (dbf, key, content, flags)
 
   /* Get the file address for the new space.
      (Current bucket's free space is first place to look.) */
-  new_size = key.dsize+content.dsize;
-  file_adr = _gdbm_alloc (dbf, new_size);
+  if (file_adr == 0)
+    {
+      file_adr = _gdbm_alloc (dbf, new_size);
+    }
 
   /* If this is a new entry in the bucket, we need to do special things. */
   if (elem_loc == -1)

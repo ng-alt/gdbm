@@ -28,11 +28,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -44,7 +39,7 @@
 
 extern const char * gdbm_version;
 
-extern const char *gdbm_strerror _ARGS((gdbm_error));
+extern const char *gdbm_strerror __P((gdbm_error));
 
 gdbm_file_info *gdbm_file;
 
@@ -96,7 +91,12 @@ _gdbm_print_avail_list (dbf)
   temp = dbf->header->avail.next_block;
   size = ( ( (dbf->header->avail.size * sizeof (avail_elem)) >> 1)
 	  + sizeof (avail_block));
-  av_stk = (avail_block *) alloca (size);
+  av_stk = (avail_block *) malloc (size);
+  if (av_stk == NULL)
+    {
+      printf("Out of memory\n");
+      exit (2);
+    }
 
   /* Print the stack. */
   while (FALSE)
@@ -144,7 +144,7 @@ usage (s)
      char *s;
 {
   printf(
-      "Usage: %s [-r or -nf] [-b block-size] [-c cache-size] [-g gdbm-file]\n",
+      "Usage: %s [-r or -ns] [-b block-size] [-c cache-size] [-g gdbm-file]\n",
       s);
   exit (2);
 }
@@ -184,9 +184,9 @@ main (argc, argv)
 
   /* Argument checking. */
   opterr = 0;
-  while ((opt = getopt (argc, argv, "frnc:b:g:")) != -1)
+  while ((opt = getopt (argc, argv, "srnc:b:g:")) != -1)
     switch (opt) {
-    case 'f':  fast = GDBM_FAST;
+    case 's':  fast = GDBM_SYNC;
                if (reader) usage (argv[0]);
                break;
     case 'r':  reader = TRUE;

@@ -25,7 +25,7 @@
                 Bellingham, WA 98226
        
     The author of this file is:
-       e-mail:  downsj@csos.orst.edu
+       e-mail:  downsj@downsj.com
 
 *************************************************************************/
 

@@ -34,7 +34,7 @@
 #include "gdbmerrno.h"
 
 /* Special extern for this file. */
-extern char *_gdbm_read_entry _ARGS((gdbm_file_info *, int));
+extern char *_gdbm_read_entry __P((gdbm_file_info *, int));
 
 
 /* Find and read the next entry in the hash structure for DBF starting
@@ -124,7 +124,7 @@ gdbm_nextkey (dbf, key)
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */
   char  *find_data;		/* Data pointer returned by _gdbm_findkey. */
-  word_t hash_val;		/* Returned by _gdbm_findkey. */
+  int    hash_val;		/* Returned by _gdbm_findkey. */
 
   /* Initialize the gdbm_errno variable. */
   gdbm_errno = GDBM_NO_ERROR;

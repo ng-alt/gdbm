@@ -1,9 +1,9 @@
-This is Info file gdbm.info, produced by Makeinfo-1.55 from the input
-file ./gdbm.texinfo.
+This is Info file gdbm.info, produced by Makeinfo version 1.68 from the
+input file ./gdbm.texinfo.
 
    This file documents the GNU dbm utility.
 
-   Copyright (C) 1989-1993 Free Software Foundation, Inc.
+   Copyright (C) 1989-1999 Free Software Foundation, Inc.
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -22,9 +22,9 @@ versions.
 File: gdbm.info,  Node: Top,  Next: Copying,  Prev: (dir),  Up: (dir)
 
    GNU `dbm' is a library of functions implementing a hashed database
-on a disk file.  This manual documents GNU `dbm' Version 1.7.1
-(`gdbm').  The software was written by Philip A. Nelson. This document
-was originally written by Pierre Gaumond from texts written by Phil.
+on a disk file.  This manual documents GNU `dbm' Version 1.8 (`gdbm').
+The software was written by Philip A. Nelson. This document was
+originally written by Pierre Gaumond from texts written by Phil.
 
 * Menu:
 
@@ -46,6 +46,7 @@ Functions:
 * Sync::                       Insure all writes to disk have competed.
 * Errors::                     Convert internal error codes into English.
 * Options::                    Setting internal options.
+* Locking::                    File locking.
 
 Other topics:
 
@@ -147,9 +148,10 @@ user, contains a definition of these functions.
      void gdbm_sync(dbf);
      int gdbm_exists(dbf, key);
      char *gdbm_strerror(errno);
-     int gdbm_setopt(dbf, option, value, size)
+     int gdbm_setopt(dbf, option, value, size);
+     int gdbm_fdesc(dbf);
 
-   The `gdbm.h' include file is often in the `/usr/local/gnu/include'
+   The `gdbm.h' include file is often in the `/usr/local/include'
 directory. (The actual location of `gdbm.h' depends on your local
 installation of `gdbm'.)
 
@@ -193,12 +195,12 @@ int flags
      database and if the database does not exist, create a new one. If
      `flags' is set to GDBM_NEWDB, the user want a new database
      created, regardless of whether one existed, and wants read and
-     write access to the new database.  For all writers (GDBM_WRITER,
-     GDBM_WRCREAT and GDBM_NEWDB) the value GDBM_FAST can be added to
-     the `flags' field using logical or.  This option causes `gdbm' to
-     write the database without any disk file synchronization.  This
-     allows faster writes, but may produce an inconsistent database in
-     the event of abnormal termination of the writer.  Any error
+     write access to the new database.  The following may also be
+     logically or'd into the database flags: GDBM_SYNC, which causes
+     all database operations to be synchronized to the disk, and
+     GDBM_NOLOCK, which prevents the library from performing any
+     locking on the database file.  The option GDBM_FAST is now
+     obsolete, since `gdbm' defaults to no-sync mode.  Any error
      detected will cause a return value of NULL and an appropriate
      value will be in `gdbm_errno' (see Variables). If no errors occur,
      a pointer to the `gdbm' file descriptor will be returned.
@@ -386,6 +388,7 @@ GDBM_FILE dbf
      The pointer returned by `gdbm_open'.
 
 datum `key'
+
 datum nextkey
      The `key' data.
 
@@ -447,13 +450,13 @@ File: gdbm.info,  Node: Sync,  Next: Errors,  Prev: Reorganization,  Up: Top
 Database Synchronization
 ************************
 
-   If your database was opened with the GDBM_FAST flag, `gdbm' does not
-wait for writes to the disk to complete before continuing.  This allows
-faster writing of databases at the risk of having a corrupted database
-if the application terminates in an abnormal fashion.  The following
-function allows the programmer to make sure the disk version of the
-database has been completely updated with all changes to the current
-time.
+   Unless your database was opened with the GDBM_SYNC flag, `gdbm' does
+not wait for writes to the disk to complete before continuing.  This
+allows faster writing of databases at the risk of having a corrupted
+database if the application terminates in an abnormal fashion.  The
+following function allows the programmer to make sure the disk version
+of the database has been completely updated with all changes to the
+current time.
 
      gdbm_sync(dbf);
 
@@ -486,15 +489,15 @@ gdbm_error errno
    The appropiate phrase for reading by humans is returned.
 
 
-File: gdbm.info,  Node: Options,  Next: Variables,  Prev: Errors,  Up: Top
+File: gdbm.info,  Node: Options,  Next: Locking,  Prev: Errors,  Up: Top
 
 Seting options.
 ***************
 
-   `Gdbm' now supports the ability to set certain options on an already
+   `Gdbm' supports the ability to set certain options on an already
 open database.
 
-     ret = gdbm_setopt(dbf, option, value, size)
+     ret = gdbm_setopt(dbf, option, value, size);
 
    The parameters are:
 
@@ -510,7 +513,7 @@ int *value
 int size
      The length of the data pointed to by `value'.
 
-   The valid options are currently:
+   The valid options are:
 
    GDBM_CACHESIZE - Set the size of the internal bucket cache.  This
 option may only be set once on each GDBM_FILE descriptor, and   is set
@@ -518,7 +521,27 @@ automatically to 100 upon the first access to the database.
 
    GDBM_FASTMODE - Set fast mode to either on or off.  This allows
 fast mode to be toggled on an already open and active database.
-value (see below) should be set to either TRUE or FALSE.
+value (see below) should be set to either TRUE or FALSE.    *This
+option is now obsolete.*
+
+   GDBM_SYNCMODE - Turn on or off file system synchronization
+operations.  This   setting defaults to off; value (see below) should
+be set to either TRUE or   FALSE.
+
+   GDBM_CENTFREE - Set central free block pool to either on or off.
+The default is off, which is how previous versions of `Gdbm'   handled
+free blocks.  If set, this option causes all subsequent free   blocks
+to be placed in the *global* pool, allowing (in theory)   more file
+space to be reused more quickly.  value (see below) should   be set to
+either TRUE or FALSE.    *NOTICE: This feature is still under study.*
+
+   GDBM_COALESCEBLKS - Set free block merging to either on or off.
+The default is off, which is how previous versions of `Gdbm'   handled
+free blocks.  If set, this option causes adjacent free blocks   to be
+merged.  This can become a CPU expensive process with time, though,
+especially if used in conjunction with GDBM_CENTFREE.  value (see below)
+ should be set to either TRUE or FALSE.    *NOTICE: This feature is
+still under study.*
 
    The return value will be -1 upon failure, or 0 upon success.  The
 global variable `gdbm_errno' will be set upon failure.
@@ -531,7 +554,27 @@ code could be used:
      ret = gdbm_setopt(dbf, GDBM_CACHESIZE, &value, sizeof(int));
 
 
-File: gdbm.info,  Node: Variables,  Next: Compatibility,  Prev: Options,  Up: Top
+File: gdbm.info,  Node: Locking,  Next: Variables,  Prev: Options,  Up: Top
+
+File Locking.
+*************
+
+   With locking disabled (if `gdbm_open' was called with GDBM_NOLOCK),
+the user may want to perform their own file locking on the database file
+in order to prevent multiple writers operating on the same file
+simultaneously.
+
+   In order to support this, the `gdbm_fdesc' routine is provided.
+
+     ret = gdbm_fdesc(dbf);
+
+   The single valid parameter is:
+
+GDBM_FILE dbf
+     The pointer returned by `gdbm_open'.
+
+
+File: gdbm.info,  Node: Variables,  Next: Compatibility,  Prev: Locking,  Up: Top
 
 Two useful variables.
 *********************
@@ -678,28 +721,29 @@ features, please report them too.
                   Bellingham, WA 98226
 
    You may contact the current maintainer by:
-         e-mail:  downsj@CSOS.ORST.EDU
+         e-mail:  downsj@downsj.com
 
 
 
 Tag Table:
-Node: Top767
-Node: Copying2197
-Node: Intro3979
-Node: List5395
-Node: Open6324
-Node: Close9217
-Node: Store9652
-Node: Fetch11447
-Node: Delete12696
-Node: Sequential13362
-Node: Reorganization15044
-Node: Sync15999
-Node: Errors16959
-Node: Options17319
-Node: Variables18625
-Node: Compatibility19055
-Node: Conversion21429
-Node: Bugs22243
+Node: Top775
+Node: Copying2247
+Node: Intro4029
+Node: List5445
+Node: Open6397
+Node: Close9268
+Node: Store9703
+Node: Fetch11498
+Node: Delete12747
+Node: Sequential13413
+Node: Reorganization15096
+Node: Sync16051
+Node: Errors17015
+Node: Options17375
+Node: Locking19724
+Node: Variables20246
+Node: Compatibility20676
+Node: Conversion23050
+Node: Bugs23864
 
 End Tag Table

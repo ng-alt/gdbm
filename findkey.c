@@ -92,9 +92,9 @@ _gdbm_findkey (dbf, key, dptr, new_hash_val)
      gdbm_file_info *dbf;
      datum key;
      char **dptr;
-     word_t *new_hash_val;		/* The new hash value. */
+     int *new_hash_val;		/* The new hash value. */
 {
-  word_t bucket_hash_val;	/* The hash value from the bucket. */
+  int    bucket_hash_val;	/* The hash value from the bucket. */
   char  *file_key;		/* The complete key as stored in the file. */
   int    elem_loc;		/* The location in the bucket. */
   int    home_loc;		/* The home location in the bucket. */

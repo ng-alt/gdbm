@@ -47,7 +47,7 @@ gdbm_delete (dbf, key)
   int home;		/* Home position of an item. */
   bucket_element elem;  /* The element to be deleted. */
   char *find_data;	/* Return pointer from findkey. */
-  word_t hash_val;	/* Returned by findkey. */
+  int   hash_val;	/* Returned by findkey. */
   off_t free_adr;       /* Temporary stroage for address and size. */
   int   free_size;
 

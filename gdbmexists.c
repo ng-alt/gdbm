@@ -25,7 +25,7 @@
                 Bellingham, WA 98226
        
     The author of this file is:
-       e-mail:  downsj@csos.orst.edu
+       e-mail:  downsj@downsj.com
 
 *************************************************************************/
 
@@ -44,8 +44,8 @@ gdbm_exists (dbf, key)
     gdbm_file_info *dbf;
     datum key;
 {
-char *find_data;		/* dummy */
-word_t hash_val;		/* dummy */
+  char *find_data;		/* dummy */
+  int hash_val;		/* dummy */
 
   return (_gdbm_findkey (dbf, key, &find_data, &hash_val) >= 0);
 }

@@ -25,7 +25,7 @@
                 Bellingham, WA 98226
        
     The author of this file is:
-       e-mail:  downsj@csos.orst.edu
+       e-mail:  downsj@downsj.com
 
 *************************************************************************/
 
@@ -49,7 +49,7 @@ gdbm_setopt(dbf, optflag, optval, optlen)
   switch(optflag)
     {
       case GDBM_CACHESIZE:
-        /* here, optval will point to the new size of the cache. */
+        /* Optval will point to the new size of the cache. */
         if (dbf->bucket_cache != NULL)
           {
             gdbm_errno = GDBM_OPT_ALREADY_SET;
@@ -59,7 +59,40 @@ gdbm_setopt(dbf, optflag, optval, optlen)
         return(_gdbm_init_cache(dbf, ((*optval) > 9) ? (*optval) : 10));
 
       case GDBM_FASTMODE:
-      	/* here, optval will point to either true or false. */
+      	/* Obsolete form of SYNCMODE. */
+	if ((*optval != TRUE) && (*optval != FALSE))
+	  {
+	    gdbm_errno = GDBM_OPT_ILLEGAL;
+	    return(-1);
+	  }
+
+	dbf->fast_write = *optval;
+	break;
+
+      case GDBM_SYNCMODE:
+      	/* Optval will point to either true or false. */
+	if ((*optval != TRUE) && (*optval != FALSE))
+	  {
+	    gdbm_errno = GDBM_OPT_ILLEGAL;
+	    return(-1);
+	  }
+
+	dbf->fast_write = !(*optval);
+	break;
+
+      case GDBM_CENTFREE:
+      	/* Optval will point to either true or false. */
+	if ((*optval != TRUE) && (*optval != FALSE))
+	  {
+	    gdbm_errno = GDBM_OPT_ILLEGAL;
+	    return(-1);
+	  }
+
+	dbf->fast_write = *optval;
+	break;
+
+      case GDBM_COALESCEBLKS:
+      	/* Optval will point to either true or false. */
 	if ((*optval != TRUE) && (*optval != FALSE))
 	  {
 	    gdbm_errno = GDBM_OPT_ILLEGAL;

@@ -27,11 +27,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -52,7 +47,10 @@ gdbm_close (dbf)
     fsync (dbf->desc);
 
   /* Close the file and free all malloced memory. */
-  UNLOCK_FILE(dbf);
+  if (dbf->file_locking)
+    {
+      UNLOCK_FILE(dbf);
+    }
   close (dbf->desc);
   free (dbf->name);
   if (dbf->dir != NULL) free (dbf->dir);

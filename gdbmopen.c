@@ -27,11 +27,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -110,37 +105,45 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
   /* Initialize the fatal error routine. */
   dbf->fatal_err = fatal_func;
 
-  /* Check for fast writers. */
-  if (flags & GDBM_FAST)
+  dbf->fast_write = TRUE;	/* Default to setting fast_write. */
+  dbf->file_locking = TRUE;	/* Default to doing file locking. */
+  dbf->central_free = FALSE;	/* Default to not using central_free. */
+  dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
+
+  /* GDBM_FAST used to determine whethere or not we set fast_write. */
+  if (flags & GDBM_SYNC)
     {
-      dbf->fast_write = TRUE;
-      flags -= GDBM_FAST;
-    }
-  else
-    {
+      /* If GDBM_SYNC has been requested, don't do fast_write. */
       dbf->fast_write = FALSE;
     }
-  
+  if (flags & GDBM_NOLOCK)
+    {
+      dbf->file_locking = FALSE;
+    }
+
   /* Open the file. */
   need_trunc = FALSE;
-  if (flags == GDBM_READER)
+  switch (flags & GDBM_OPENMASK)
     {
-      dbf->desc = open (dbf->name, O_RDONLY, 0);
-    }
-  else if (flags == GDBM_WRITER)
-    {
-      dbf->desc = open (dbf->name, O_RDWR, 0);
-    }
-  else if (flags == GDBM_NEWDB)
-    {
-      dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
-      flags = GDBM_WRITER;
-      need_trunc = TRUE;
-    }
-  else
-    {
-      dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
-      flags = GDBM_WRITER;
+      case GDBM_READER:
+	dbf->desc = open (dbf->name, O_RDONLY, 0);
+	break;
+
+      case GDBM_OPENMASK:
+	dbf->desc = open (dbf->name, O_RDWR, 0);
+	break;
+
+      case GDBM_NEWDB:
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	flags = GDBM_WRITER;
+	need_trunc = TRUE;
+	break;
+
+      default:
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	flags = GDBM_WRITER;
+	break;
+
     }
   if (dbf->desc < 0)
     {
@@ -154,7 +157,7 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
   fstat (dbf->desc, &file_stat);
 
   /* Lock the file in the approprate way. */
-  if (flags == GDBM_READER)
+  if ((flags & GDBM_OPENMASK) == GDBM_READER)
     {
       if (file_stat.st_size == 0)
 	{
@@ -164,20 +167,23 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
 	  gdbm_errno = GDBM_EMPTY_DATABASE;
 	  return NULL;
 	}
-      /* Sets lock_val to 0 for success.  See systems.h. */
-      READLOCK_FILE(dbf);
+      if (dbf->file_locking)
+	{
+          /* Sets lock_val to 0 for success.  See systems.h. */
+          READLOCK_FILE(dbf);
+	}
     }
-  else
+  else if (dbf->file_locking)
     {
       /* Sets lock_val to 0 for success.  See systems.h. */
       WRITELOCK_FILE(dbf);
     }
-  if (lock_val != 0)
+  if (dbf->file_locking && (lock_val != 0))
     {
       close (dbf->desc);
       free (dbf->name);
       free (dbf);
-      if (flags == GDBM_READER)
+      if ((flags & GDBM_OPENMASK) == GDBM_READER)
 	gdbm_errno = GDBM_CANT_BE_READER;
       else
 	gdbm_errno = GDBM_CANT_BE_WRITER;
@@ -185,7 +191,7 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
     }
 
   /* Record the kind of user. */
-  dbf->read_write = flags;
+  dbf->read_write = (flags & GDBM_OPENMASK);
 
   /* If we do have a write lock and it was a GDBM_NEWDB, it is 
      now time to truncate the file. */
@@ -252,16 +258,7 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
 	(dbf->header->block_size - sizeof (hash_bucket))
 	/ sizeof (bucket_element) + 1;
       dbf->header->bucket_size  = dbf->header->block_size;
-#if !defined(sgi)
-      dbf->bucket = (hash_bucket *) (alloca (dbf->header->bucket_size));
-#else	/* sgi */
-      /* The SGI C compiler doesn't accept the previous form. */
-      {
-        hash_bucket *ptr;
-	ptr = (hash_bucket *) (alloca (dbf->header->bucket_size));
-	dbf->bucket = ptr;
-      }
-#endif	/* sgi */
+      dbf->bucket = (hash_bucket *) malloc (dbf->header->bucket_size);
       if (dbf->bucket == NULL)
 	{
 	  gdbm_close (dbf);
@@ -316,6 +313,7 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
       /* Wait for initial configuration to be written to disk. */
       fsync (dbf->desc);
 
+      free (dbf->bucket);
     }
   else
     {
@@ -386,7 +384,7 @@ gdbm_open (file, block_size, flags, mode, fatal_func)
 	}
 
     }
-      
+
   /* Finish initializing dbf. */
   dbf->last_read = -1;
   dbf->bucket = NULL;

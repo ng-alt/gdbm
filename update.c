@@ -32,7 +32,7 @@
 
 #include "gdbmdefs.h"
 
-static void write_header _ARGS((gdbm_file_info *));
+static void write_header __P((gdbm_file_info *));
 
 /* This procedure writes the header back to the file described by DBF. */
 
@@ -112,15 +112,21 @@ _gdbm_end_update (dbf)
 
 /* If a fatal error is detected, come here and exit. VAL tells which fatal
    error occured. */
+
 int
 _gdbm_fatal (dbf, val)
      gdbm_file_info *dbf;
      char *val;
 {
-  if (dbf->fatal_err != NULL)
+  if ((dbf != NULL) && (dbf->fatal_err != NULL))
     (*dbf->fatal_err) (val);
   else
-    fprintf (stderr, "gdbm fatal: %s.\n", val);
+    {
+      write (STDERR_FILENO, "gdbm fatal: ", 12);
+      if (val != NULL)
+	write (STDERR_FILENO, val, strlen(val));
+      write (STDERR_FILENO, "\n", 1);
+    }
   exit (-1);
   /* NOTREACHED */
 }

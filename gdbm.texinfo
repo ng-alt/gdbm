@@ -12,7 +12,7 @@
 @ifinfo
 This file documents the GNU dbm utility.
 
-Copyright (C) 1989-1993 Free Software Foundation, Inc.
+Copyright (C) 1989-1999 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -41,23 +41,22 @@ into another language, under the above conditions for modified versions.
 @sp 2
 @center A Database Manager
 @sp 2
-@center by Philip A. Nelson
+@center by Philip A. Nelson and Jason Downs
 @sp 4
-@center Manual by Pierre Gaumond and Philip A. Nelson 
-@center Updated by Jason Downs
+@center Manual by Pierre Gaumond, Philip A. Nelson and Jason Downs
 @sp 1
-@center Edition 1.4.1
+@center Edition 1.5
 @sp 1
-@center for GNU @code{dbm}, Version 1.7.3.
+@center for GNU @code{dbm}, Version 1.8.
 @page
 @null
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-94 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-99 Free Software Foundation, Inc.
 @sp 2
 
-This is Edition 1.4.1 of the @cite{GNU @code{dbm} Manual}, for @code{gdbm}
-Version 1.7.3. @*
-Last updated May 19, 1994
+This is Edition 1.5 of the @cite{GNU @code{dbm} Manual}, for @code{gdbm}
+Version 1.8. @*
+Last updated May 19, 1999
 
 Published by the Free Software Foundation @*
 675 Massachusetts Avenue, @*
@@ -82,7 +81,7 @@ by the Free Software Foundation.
 @node Top, Copying, (dir), (dir)
 @ifinfo
 GNU @code{dbm} is a library of functions implementing a hashed database
-on a disk file.  This manual documents GNU @code{dbm} Version 1.7.1
+on a disk file.  This manual documents GNU @code{dbm} Version 1.8
 (@code{gdbm}).  The software was written by Philip A. Nelson. This
 document was originally written by Pierre Gaumond from texts written by
 Phil.
@@ -108,6 +107,7 @@ Functions:
 * Sync::                       Insure all writes to disk have competed.
 * Errors::                     Convert internal error codes into English.
 * Options::                    Setting internal options.
+* Locking::                    File locking.
 
 Other topics:
 
@@ -206,10 +206,11 @@ int gdbm_reorganize(dbf);
 void gdbm_sync(dbf);
 int gdbm_exists(dbf, key);
 char *gdbm_strerror(errno);
-int gdbm_setopt(dbf, option, value, size)
+int gdbm_setopt(dbf, option, value, size);
+int gdbm_fdesc(dbf);
 @end example
 
-The @code{gdbm.h} include file is often in the @file{/usr/local/gnu/include}
+The @code{gdbm.h} include file is often in the @file{/usr/local/include}
 directory. (The actual location of @code{gdbm.h} depends on your local
 installation of @code{gdbm}.)
 
@@ -249,16 +250,14 @@ and requires exclusive access. If @code{flags} is set to GDBM_WRCREAT, the
 user wants both read and write access to the database and if the database does
 not exist, create a new one. If @code{flags} is set to GDBM_NEWDB, the
 user want a new database created, regardless of whether one existed, and wants
-read and write access to the new database.  For all writers (GDBM_WRITER,
-GDBM_WRCREAT and GDBM_NEWDB) the value GDBM_FAST can be added to the 
-@code{flags} field using logical or.  This option causes @code{gdbm}
-to write the database without any disk file synchronization.  This allows 
-faster writes, but may produce an inconsistent database in the event of
-abnormal termination of the writer.
-Any error detected will cause a
-return value of NULL and an appropriate value will be in @code{gdbm_errno} (see
-Variables). If no errors occur, a pointer to the @code{gdbm} file descriptor
-will be returned.
+read and write access to the new database.  The following may also be logically
+or'd into the database flags: GDBM_SYNC, which causes all database operations
+to be synchronized to the disk, and GDBM_NOLOCK, which prevents the library
+from performing any locking on the database file.  The option GDBM_FAST is
+now obsolete, since @code{gdbm} defaults to no-sync mode.  Any error detected
+will cause a return value of NULL and an appropriate value will be in
+@code{gdbm_errno} (see Variables). If no errors occur, a pointer to the
+@code{gdbm} file descriptor will be returned.
 @item int mode
 File mode (see chmod(2) and open(2) if the file is created).
 @item void (*fatal_func) ()
@@ -501,8 +500,8 @@ reorganization.
 @node Sync, Errors, Reorganization, Top
 @chapter Database Synchronization
 
-If your database was opened with the GDBM_FAST flag, @code{gdbm} does not
-wait for writes to the disk to complete before continuing.  This allows
+Unless your database was opened with the GDBM_SYNC flag, @code{gdbm} does not
+wait for writes to be flushed to the disk before continuing.  This allows
 faster writing of databases at the risk of having a corrupted database if
 the application terminates in an abnormal fashion.  The following function
 allows the programmer to make sure the disk version of the 
@@ -543,14 +542,14 @@ The @code{gdbm} error code, usually @code{gdbm_errno}.
 
 The appropiate phrase for reading by humans is returned.
 
-@node Options, Variables, Errors, top
+@node Options, Locking, Errors, top
 @chapter Seting options.
 
-@code{Gdbm} now supports the ability to set certain options on an already
+@code{Gdbm} supports the ability to set certain options on an already
 open database.
 
 @example
-ret = gdbm_setopt(dbf, option, value, size)
+ret = gdbm_setopt(dbf, option, value, size);
 @end example
 
 The parameters are:
@@ -566,7 +565,7 @@ A pointer to the value to which @code{option} will be set.
 The length of the data pointed to by @code{value}.
 @end table
 
-The valid options are currently:
+The valid options are:
 
   GDBM_CACHESIZE - Set the size of the internal bucket cache.  This
   option may only be set once on each GDBM_FILE descriptor, and
@@ -575,6 +574,27 @@ The valid options are currently:
   GDBM_FASTMODE - Set fast mode to either on or off.  This allows
   fast mode to be toggled on an already open and active database.
   value (see below) should be set to either TRUE or FALSE.
+  @emph{This option is now obsolete.}
+
+  GDBM_SYNCMODE - Turn on or off file system synchronization operations.  This
+  setting defaults to off; value (see below) should be set to either TRUE or
+  FALSE.
+
+  GDBM_CENTFREE - Set central free block pool to either on or off.
+  The default is off, which is how previous versions of @code{Gdbm}
+  handled free blocks.  If set, this option causes all subsequent free
+  blocks to be placed in the @emph{global} pool, allowing (in theory)
+  more file space to be reused more quickly.  value (see below) should
+  be set to either TRUE or FALSE.
+  @emph{NOTICE: This feature is still under study.}
+
+  GDBM_COALESCEBLKS - Set free block merging to either on or off.
+  The default is off, which is how previous versions of @code{Gdbm}
+  handled free blocks.  If set, this option causes adjacent free blocks
+  to be merged.  This can become a CPU expensive process with time, though,
+  especially if used in conjunction with GDBM_CENTFREE.  value (see below)
+  should be set to either TRUE or FALSE.
+  @emph{NOTICE: This feature is still under study.}
 
 The return value will be -1 upon failure, or 0 upon success.  The global
 variable @code{gdbm_errno} will be set upon failure.
@@ -588,7 +608,30 @@ int value = 10;
 ret = gdbm_setopt(dbf, GDBM_CACHESIZE, &value, sizeof(int));
 @end example
 
-@node Variables, Compatibility, Options, Top
+@node Locking, Variables, Options, Top
+@chapter File Locking.
+
+With locking disabled (if @code{gdbm_open} was called with GDBM_NOLOCK),
+the user may want to perform their own file locking on the database file
+in order to prevent multiple writers operating on the same file
+simultaneously.
+
+In order to support this, the @code{gdbm_fdesc} routine is provided.
+
+@example
+ret = gdbm_fdesc(dbf);
+@end example
+
+The single valid parameter is:
+
+@table @asis
+@item GDBM_FILE dbf
+The pointer returned by @code{gdbm_open}.
+@end table
+
+The return value will be the file descriptor of the database.
+
+@node Variables, Compatibility, Locking, Top
 @chapter Two useful variables.
 
 The following two variables are variables that may need to be used:
@@ -597,7 +640,7 @@ The following two variables are variables that may need to be used:
 @item gdbm_error gdbm_errno
 The variable that contains more information about @code{gdbm} errors
 (@code{gdbm.h} has the definitions of the error values).
-@item const char * gdbm_version
+@item char * gdbm_version
 The string containing the version information.
 @end table
 
@@ -737,7 +780,7 @@ You may contact the author by:
 
 You may contact the current maintainer by:
 @example
-    e-mail:  downsj@@CSOS.ORST.EDU
+    e-mail:  downsj@@downsj.com
 @end example
 
 @bye

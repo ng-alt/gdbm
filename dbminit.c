@@ -28,11 +28,6 @@
 *************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -57,11 +52,19 @@ dbminit (file)
   char* pag_file;	    /* Used to construct "file.pag". */
   char* dir_file;	    /* Used to construct "file.dir". */
   struct stat dir_stat;	    /* Stat information for "file.dir". */
+  int ret;
 
+
+  ret = 0;		    /* Default return value. */
 
   /* Prepare the correct names of "file.pag" and "file.dir". */
-  pag_file = (char *) alloca (strlen (file)+5);
-  dir_file = (char *) alloca (strlen (file)+5);
+  pag_file = (char *) malloc (strlen (file)+5);
+  dir_file = (char *) malloc (strlen (file)+5);
+  if ((pag_file == NULL) || (dir_file == NULL))
+    {
+      gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
+      return -1;
+    }
 
   strcpy (pag_file, file);
   strcat (pag_file, ".pag");
@@ -83,7 +86,8 @@ dbminit (file)
       if (_gdbm_file == NULL)
 	{
 	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
-	  return -1;
+	  ret = -1;
+	  goto done;
 	}
     }
 
@@ -96,7 +100,8 @@ dbminit (file)
 	  {
 	    gdbm_errno = GDBM_FILE_OPEN_ERROR;
 	    gdbm_close (_gdbm_file);
-	    return -1;
+	    ret = -1;
+	    goto done;
 	  }
     }
   else
@@ -107,9 +112,15 @@ dbminit (file)
 	{
 	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
 	  gdbm_close (_gdbm_file);
-	  return -1;
+	  ret = -1;
+	  goto done;
 	}
     }
-	    
-  return 0;
+
+  ret = 0;
+
+done:
+  free (dir_file);
+  free (pag_file);
+  return ret;
 }

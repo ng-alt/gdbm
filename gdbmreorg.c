@@ -27,11 +27,6 @@
 ************************************************************************/
 
 
-/* AIX demands this be the very first thing in the file. */
-#if !defined(__GNUC__) && defined(_AIX)
- #pragma alloca
-#endif
-
 /* include system configuration before all else. */
 #include "autoconf.h"
 
@@ -47,7 +42,7 @@
    to being used in gdbm). */
 
 static int
-rename (old_name, new_name)
+_gdbm_rename (old_name, new_name)
      char* old_name;
      char* new_name;
 {
@@ -61,6 +56,8 @@ rename (old_name, new_name)
   return 0;
 
 }
+
+#define rename _gdbm_rename
 #endif
 
 
@@ -97,7 +94,7 @@ gdbm_reorganize (dbf)
 
   /* Construct new name for temporary file. */
   len = strlen (dbf->name);
-  new_name = (char *) alloca (len + 3);
+  new_name = (char *) malloc (len + 3);
   if (new_name == NULL)
     {
       gdbm_errno = GDBM_MALLOC_ERROR;
@@ -113,16 +110,14 @@ gdbm_reorganize (dbf)
     }
   new_name[len] = '#';
 
-  /* Get the mode for the old file and open the new database.
-     The "fast" mode is used because the reorganization will fail
-     unless we create a complete copy of the database. */
+  /* Get the mode for the old file and open the new database. */
   fstat (dbf->desc, &fileinfo);
-  new_dbf = gdbm_open (new_name, dbf->header->block_size,
-		       GDBM_WRCREAT | GDBM_FAST,
+  new_dbf = gdbm_open (new_name, dbf->header->block_size, GDBM_WRCREAT,
 		       fileinfo.st_mode, dbf->fatal_err);
 
   if (new_dbf == NULL)
     {
+      free (new_name);
       gdbm_errno = GDBM_REORGANIZE_FAILED;
       return -1;
     }
@@ -142,6 +137,7 @@ gdbm_reorganize (dbf)
 	      gdbm_close (new_dbf);
 	      gdbm_errno = GDBM_REORGANIZE_FAILED;
 	      unlink (new_name);
+	      free (new_name);
 	      return -1;
 	    }
  	}
@@ -151,6 +147,7 @@ gdbm_reorganize (dbf)
 	  gdbm_close (new_dbf);
 	  gdbm_errno = GDBM_REORGANIZE_FAILED;
 	  unlink (new_name);
+	  free (new_name);
 	  return -1;
  	}
       nextkey = gdbm_nextkey (dbf, key);
@@ -170,11 +167,15 @@ gdbm_reorganize (dbf)
     {
       gdbm_errno = GDBM_REORGANIZE_FAILED;
       gdbm_close (new_dbf);
+      free (new_name);
       return -1;
     }
 
   /* Fix up DBF to have the correct information for the new file. */
-  UNLOCK_FILE(dbf);
+  if (dbf->file_locking)
+    {
+      UNLOCK_FILE(dbf);
+    }
   close (dbf->desc);
   free (dbf->header);
   free (dbf->dir);
@@ -203,6 +204,7 @@ gdbm_reorganize (dbf)
   dbf->second_changed    = new_dbf->second_changed;
       
   free (new_dbf);
+  free (new_name);
 
   /* Make sure the new database is all on disk. */
   fsync (dbf->desc);

@@ -1,3 +1,104 @@
+Tue May 18 19:25:25 PDT 1999	Jason Downs	(downsj@downsj.com)
+
+	* gdbm.3, gdbm.texinfo: Update for 1.8.
+
+	* Makefile.in, configure.in: Switch to using libtool, but without
+	  automake.
+
+	* aclocal.m4, config.guess, config.sub, ltconfig, ltmain.sh: New
+	  files (libtool 1.2).
+
+Wed May 12 01:26:15 PDT 1999	Jason Downs	(downsj@downsj.com)
+
+	* gdbmopen.c, gdbmclose.c, gdbmreorg.c: check file_locking before
+	  calling locking macros; add support for setting GDBM_NOLOCK in
+	  gdbm_open().
+
+	* gdbmdefs.h: add file_locking flag to gdbm_file_info.
+
+	* gdbmconst.h, gdbm.proto: add GDBM_NOLOCK flag.
+
+	* gdbmfdesc.c: new file, adds external gdbm_fdesc() routine.
+
+	* gdbm.proto, gdbm.proto2: clean up, use __P, and compress.
+
+	* gdbmerrno.h: kill the enum, add defines for errors.
+
+	* gdbmsetopt.c, testgdbm.c: support GDBM_SYNC/GDBM_SYNCMODE.
+
+	* gdbmopen.c: gdbm_open() now DEFAULTS to ``fast mode''; use
+	  GDBM_SYNC to turn it off.  GDBM_FAST is obsolete and ignored.
+
+	* gdbmconst.h: add GDBM_SYNC and GDBM_SYNCMODE.
+
+	* proto.h, various source files: switch _ARGS to __P.
+
+	* systems.h, various source files: kill word_t, just use int
+	  everywhere.
+
+	* configure.in, autoconf.h.in: remove alloca() goo and modernize.
+
+	* many source files: replace all instances of alloca() with real
+	  malloc()s and free()s.
+
+	* update.c: don't deref NULL in _gdbm_fatal(), and don't use stdio.
+
+[  The following are entries revived from a dead experimental branch. ]
+
+Tue Nov  1 00:35:11 1994  jason downs  (downsj@csos.orst.edu)
+
+	* gdbmopen.c (gdbm_open): actually initialize central_free and
+	  coalesce_blocks.
+
+	* gdbmdefs.h: added coalesce_blocks. these should've been bitmapped.
+	  oh well.
+
+	* falloc.c (various routines): made block merging an option.
+
+	* gdbmsetopt.c (gdbm_setopt): added GDBM_COALESCEBLKS option.
+
+	* gdbmconst.h: added GDBM_COALESCEBLKS option.
+
+Fri Jun  3 09:45:19 1994  jason downs  (downsj@csos.orst.edu)
+        
+	* falloc.c (_gdbm_free): if central_free is set, all blocks are
+	  put into the header.
+        
+	* gdbmsetopt.c (gdbm_setopt): add GDBM_CENTFREE case.
+        
+	* gdbmdefs.h, gdbmconst.h, gdbm.proto: add central free option.
+
+Fri Jun  3 05:57:36 1994  jason downs  (downsj@csos.orst.edu)
+
+	* falloc.c (pop_avail_block): merge block with header, instead
+	  of replace, since header may not be empty any longer.
+
+	* falloc.c (_gdbm_alloc): pop a block off the stack when the
+	  current header is half empty, instead of zero.
+
+Fri Jun  3 05:11:33 1994  jason downs  (downsj@csos.orst.edu)
+
+	* gdbmstore.c (gdbm_store): don't alloc new disk if we're replacing
+	  and the records are the same size. suggested by phil a long time
+	  ago.
+
+Fri Jun  3 03:47:46 1994  jason downs  (downsj@csos.orst.edu)
+        
+	* falloc.c (_gdbm_put_av_elem): allow adjacent blocks to be
+	  merged. inspired by the enhancement by Tim Howes.
+
+Thu Jun  2 22:15:19 1994  jason downs  (downsj@csos.orst.edu)
+
+	* Makefile.in: add installation mode, owner, and group.
+
+Thu Jun  2 04:24:58 1994  jason downs  (downsj@csos.orst.edu)
+
+	* Makefile.in: run mkinstalldirs before installing files.
+
+	* mkinstalldirs: new file.
+
+[ End of revived entries. ]
+
 Thu May 19 15:50:04 1994  jason downs  (downsj@csos.orst.edu)
 	
 	* NEWS, README: update to 1.7.3.
