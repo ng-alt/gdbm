@@ -7,7 +7,7 @@ VPATH = @srcdir@
 CC = @CC@
 LIBTOOL = @LIBTOOL@
 
-# GDBM 1.8.2 builds shared libraries version 3.0
+# GDBM 1.8.3 builds shared libraries version 3.0
 SHLIB_VER = 3 0 0
 
 INSTALL = @INSTALL@
@@ -26,9 +26,8 @@ DEFS =
 # Where the system [n]dbm routines are...
 LIBS = @LIBS@ -lc
 
-# SunOS 4 users might wish to add '-fpcc-struct-return' to CFLAGS. see INSTALL.
-CFLAGS = -O
-LDFLAGS =
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
 
 # Common prefix for installation directories
 prefix = @prefix@
@@ -37,12 +36,12 @@ binprefix = $(exec_prefix)
 manprefix = $(prefix)
 
 # Directory in which to put libgdbm.a.
-libdir = $(exec_prefix)/lib
+libdir = @libdir@
 # The include directory for gdbm.h and dbm.h.
-includedir = $(prefix)/include
+includedir = @includedir@
 # Info and man directories.
-infodir = $(prefix)/info
-man3dir = $(prefix)/man/man3
+infodir = @infodir@
+man3dir = @mandir@/man3
 manext = 3
 
 #### End of system configuration section. ####
@@ -128,21 +127,26 @@ all: libgdbm.la libgdbm_compat.la
 progs: $(PROGS)
 
 install: libgdbm.la gdbm.h gdbm.info
-	$(srcdir)/mkinstalldirs $(libdir) $(includedir) $(man3dir) $(infodir)
-	$(LIBTOOL) $(INSTALL) -c libgdbm.la $(libdir)/libgdbm.la
-	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) gdbm.h $(includedir)/gdbm.h
+	$(srcdir)/mkinstalldirs $(INSTALL_ROOT)$(libdir) \
+		$(INSTALL_ROOT)$(includedir) $(INSTALL_ROOT)$(man3dir) \
+		$(INSTALL_ROOT)$(infodir)
+	$(LIBTOOL) $(INSTALL) -c libgdbm.la $(INSTALL_ROOT)$(libdir)/libgdbm.la
+	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) gdbm.h \
+		$(INSTALL_ROOT)$(includedir)/gdbm.h
 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.3 \
-		$(man3dir)/gdbm.3
+		$(INSTALL_ROOT)$(man3dir)/gdbm.3
 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.info \
-		$(infodir)/gdbm.info
+		$(INSTALL_ROOT)$(infodir)/gdbm.info
 
 install-compat:
-	$(srcdir)/mkinstalldirs $(libdir) $(includedir)
-	$(LIBTOOL) $(INSTALL) -c libgdbm_compat.la $(libdir)/libgdbm_compat.la
+	$(srcdir)/mkinstalldirs $(INSTALL_ROOT)$(libdir) \
+		$(INSTALL_ROOT)$(includedir)
+	$(LIBTOOL) $(INSTALL) -c libgdbm_compat.la \
+		$(INSTALL_ROOT)$(libdir)/libgdbm_compat.la
 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/dbm.h \
-		$(includedir)/dbm.h
+		$(INSTALL_ROOT)$(includedir)/dbm.h
 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/ndbm.h \
-		$(includedir)/ndbm.h
+		$(INSTALL_ROOT)$(includedir)/ndbm.h
 
 #libgdbm.a: $(OBJS) gdbm.h
 #	rm -f libgdbm.a

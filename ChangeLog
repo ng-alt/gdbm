@@ -1,3 +1,28 @@
+
+Tue Oct 15 15:00:11 PDT 2002	Jason Downs (downsj@downsj.com)
+
+	* samp1.cc: Remove.
+
+	* gdbm.3, gdbm.texinfo: 1.8.3.
+
+	* version.c: Version 1.8.3., modernize string (release date is in
+	  American format).
+
+	* gdbmreorg.c: Remove small memory leak.
+
+	* Makefile.in: Use more subs from configure, remove mention of SunOS.
+	  Add support for spec'ing an install time prefix via INSTALL_ROOT.
+
+	* INSTALL: Remove extra text from top.
+
+	* config.guess, config.sub: Update to latest versions.
+
+	* autoconf.h.in: Regenerate.
+
+	* configure.in: Modernize.
+
+	* systems.h: HAVE_ST_BLKSIZE -> HAVE_STRUCT_STAT_ST_BLKSIZE.
+
 Fri Sep 27 16:12:44 PDT 2002	Jason Downs (downsj@downsj.com)
 
 	* Makefile.in: Remove `info' target from all, since we don't even

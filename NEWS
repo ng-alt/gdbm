@@ -1,3 +1,6 @@
+CHANGES from 1.8.2 to 1.8.3
+  1.  Various configure related changes and additional updates.
+
 CHANGES from 1.8.1 to 1.8.2
   1.  Allow `NEWDB'-opened databases to actually, well, store records.
 
