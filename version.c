@@ -30,4 +30,4 @@
 
 /* Keep a string with the version number in it! */
 const char * gdbm_version =
-	"This is GDBM version 1.8.0, as of May 19, 1999.";
+	"This is GDBM version 1.8.1, as of September 26, 2002.";
