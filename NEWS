@@ -1,3 +1,6 @@
+CHANGES from 1.8.1 to 1.8.2
+  1.  Allow `NEWDB'-opened databases to actually, well, store records.
+
 CHANGES from 1.8 to 1.8.1
   1.  Lots of bug fixes, including a data corruption bug.
   2.  Updated to current autoconf and libtool.

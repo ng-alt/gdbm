@@ -7,7 +7,7 @@ VPATH = @srcdir@
 CC = @CC@
 LIBTOOL = @LIBTOOL@
 
-# GDBM 1.8.1 builds shared libraries version 3.0
+# GDBM 1.8.2 builds shared libraries version 3.0
 SHLIB_VER = 3 0 0
 
 INSTALL = @INSTALL@
@@ -123,7 +123,7 @@ MSCFILES = COPYING ChangeLog Makefile.in README gdbm.3 gdbm.texinfo \
 
 DISTFILES = $(SRCS) $(HDRS) $(MSCFILES)
 
-all: libgdbm.la libgdbm_compat.la info
+all: libgdbm.la libgdbm_compat.la
 
 progs: $(PROGS)
 

@@ -1,3 +1,9 @@
+Fri Sep 27 16:12:44 PDT 2002	Jason Downs (downsj@downsj.com)
+
+	* Makefile.in: Remove `info' target from all, since we don't even
+	  bother installing the one we built anyway.
+
+	* Fix a few checks against dbf.read_write.
 
 Wed Sep 25 15:19:00 PDT 2002	Jason Downs (downsj@downsj.com)
 

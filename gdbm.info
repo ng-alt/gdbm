@@ -27,7 +27,7 @@ versions.
 File: gdbm.info,  Node: Top,  Next: Copying,  Prev: (dir),  Up: (dir)
 
    GNU `dbm' is a library of functions implementing a hashed database
-on a disk file.  This manual documents GNU `dbm' Version 1.8.1
+on a disk file.  This manual documents GNU `dbm' Version 1.8.2
 (`gdbm').  The software was written by Philip A. Nelson. This document
 was originally written by Pierre Gaumond from texts written by Phil.
 
@@ -657,7 +657,7 @@ compatibility functions will do it for you.
    If you want to compile an old C program that used UNIX `dbm' or
 `ndbm' and want to use `gdbm' files, execute the following `cc' command:
 
-     cc ... -L /usr/local/lib -lgdbm
+     cc ... -L/usr/local/lib -lgdbm -lgdbm_compat
 
 
 File: gdbm.info,  Node: Conversion,  Next: Bugs,  Prev: Compatibility,  Up: Top
@@ -750,7 +750,7 @@ Node: Options17489
 Node: Locking19838
 Node: Variables20426
 Node: Compatibility20850
-Node: Conversion23224
-Node: Bugs24038
+Node: Conversion23237
+Node: Bugs24051
 
 End Tag Table
