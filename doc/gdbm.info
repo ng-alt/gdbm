@@ -29,9 +29,10 @@ The GNU database manager.
 *************************
 
 GNU `dbm' is a library of functions implementing a hashed database on a
-disk file.  This manual documents GNU `dbm' Version 1.9 (`gdbm').  The
-software was originally written by Philip A.  Nelson.  This document
-was originally written by Pierre Gaumond from texts written by Phil.
+disk file.  This manual documents GNU `dbm' Version 1.9.1 (`gdbm').
+The software was originally written by Philip A.  Nelson.  This
+document was originally written by Pierre Gaumond from texts written by
+Phil.
 
 * Menu:
 
@@ -2166,37 +2167,37 @@ Index
 
 Tag Table:
 Node: Top969
-Node: Copying2860
-Node: Intro4643
-Node: List6063
-Node: Open7012
-Node: Close10322
-Node: Store10776
-Node: Fetch12752
-Node: Delete13974
-Node: Sequential14740
-Node: Reorganization17731
-Node: Sync18740
-Node: Flat files19830
-Node: Errors22432
-Node: Options22996
-Node: Locking28723
-Node: testgdbm29316
-Node: invocation30290
-Node: shell30852
-Ref: pager32459
-Ref: nul-termination32824
-Ref: testgdbm export33286
-Ref: testgdbm import33670
-Node: gdbmexport36107
-Node: Variables37366
-Node: Error codes39797
-Node: Compatibility43634
-Node: ndbm45208
-Node: dbm49898
-Node: Bugs52558
-Node: Resources53913
-Node: GNU Free Documentation License54627
-Node: Index79799
+Node: Copying2861
+Node: Intro4644
+Node: List6064
+Node: Open7013
+Node: Close10323
+Node: Store10777
+Node: Fetch12753
+Node: Delete13975
+Node: Sequential14741
+Node: Reorganization17732
+Node: Sync18741
+Node: Flat files19831
+Node: Errors22433
+Node: Options22997
+Node: Locking28724
+Node: testgdbm29317
+Node: invocation30291
+Node: shell30853
+Ref: pager32460
+Ref: nul-termination32825
+Ref: testgdbm export33287
+Ref: testgdbm import33671
+Node: gdbmexport36108
+Node: Variables37367
+Node: Error codes39798
+Node: Compatibility43635
+Node: ndbm45209
+Node: dbm49899
+Node: Bugs52559
+Node: Resources53914
+Node: GNU Free Documentation License54628
+Node: Index79800
 
 End Tag Table

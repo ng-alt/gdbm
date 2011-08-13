@@ -86,7 +86,7 @@ extern const char *gdbm_version;
 
 #define GDBM_VERSION_MAJOR 1
 #define GDBM_VERSION_MINOR 9
-#define GDBM_VERSION_PATCH 0
+#define GDBM_VERSION_PATCH 1
 
 extern int const gdbm_version_number[3];
 
