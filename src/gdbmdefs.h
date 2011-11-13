@@ -20,6 +20,11 @@
 #include "systems.h"
 #include "gdbmconst.h"
 #include "gdbm.h"
+#define DEFAULT_TEXT_DOMAIN PACKAGE
+#include "gettext.h"
+
+#define _(s) gettext (s)
+#define N_(s) s
 
 /* The type definitions are next.  */
 
@@ -151,6 +156,9 @@ struct gdbm_file_info {
 
 	/* Whether or not we're allowing mmap() use. */
         unsigned memory_mapping :1;
+
+        /* Whether the database was open with GDBM_CLOEXEC flag */
+        unsigned cloexec :1;
   
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,
@@ -198,6 +206,16 @@ struct gdbm_file_info {
 	off_t  mapped_off;     /* Position in the file where the region
 				  begins */
       };
+
+/* Execute CODE without clobbering errno */
+#define SAVE_ERRNO(code)			\
+  do						\
+    {						\
+      int __ec = errno;				\
+      code;					\
+      errno = __ec;				\
+    }						\
+  while (0)					\
 
 /* Now define all the routines in use. */
 #include "proto.h"

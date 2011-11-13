@@ -1,9 +1,209 @@
+2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Version 1.10
+
+	* NEWS: Raise version number.
+	* configure.ac: Raise version number.
+
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement cloexec in gdbm_reorganize.  Add test cases.
+	
+	* compat/dbmopen.c: Apply O_CLOEXEC to newly created dir
+	file, if requested.
+
+	* src/gdbmdefs.h (gdbm_file_info) <cloexec>: New member.
+	* src/gdbmopen.c (gdbm_open): Initialize cloexec member.
+	* src/gdbmreorg.c (gdbm_reorganize): Propagate cloexec bit
+	to the new database.
+
+	* tests/.cvsignore: Update.
+	* tests/cloexec00.at: New test case.
+	* tests/cloexec01.at: Likewise.
+	* tests/cloexec02.at: Likewise.
+	* tests/cloexec03.at: Likewise.
+	* fdop.c: New auxiliary program.
+	* g_open_ce: New test program.
+	* g_reorg_ce: New test program.
+	* d_creat_ce: New test program.
+	* tests/Makefile.am: Add new test cases and test programs.
+	* tests/testsuite.at: Include new test cases.
+	* doc/gdbm.texinfo: Minor change.
+	
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Use SEEK_SET instead of L_SET in all sources.
+
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Support close-on-exec flag for gdbm_open call.
+	
+	* src/gdbm.h.in (GDBM_CLOEXEC): New flag.
+	* src/systems.h [O_CLOEXEC]: Provide a placeholder definition.
+	
+	* src/gdbmopen.c (gdbm_open): Honor the GDBM_CLOEXEC flag.
+	* compat/dbmopen.c (ndbm_open_dir_file0): Mask out open mode
+	before comparing with GDBM_READER.
+	Support GDBM_CLOEXEC.
+	(dbm_open): Translate O_CLOEXEC to GDBM_CLOEXEC.
+
+	* doc/gdbm.texinfo: Document GDBM_CLOEXEC.
+	
+	* NEWS: Update.
+	
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix handling of NDBM databases in read-only mode.
+	
+	* compat/dbmopen.c (ndbm_open_dir_file0): Open dir file in
+	read-only mode if the database is being opened as GDBM_READER.
+	* tests/dbmcvt.at: New file.
+	* tests/dbmfetch02.at: New file.
+	* tests/dbmfetch03.at: New file.
+	* tests/Makefile.am (TESTSUITE_AT): Add new files.
+	* tests/testsuite.at: Include new testcases.
+
+2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix bug #150.
+
+	Tolerate I/O operations returning less bytes than expected.  Retry I/O
+	if possible.
+	
+	* src/fullio.c: New file.
+	* src/Makefile.am (libgdbm_la_SOURCES): Add fullio.c
+	* src/proto.h (_gdbm_full_read)
+	(_gdbm_full_write): New protos.
+	* src/gdbmerrno.c (gdbm_errlist): Add entry for GDBM_FILE_EOF.
+
+	* src/bucket.c: Use _gdbm_full_{read|write}.
+	* src/falloc.c: Likewise.
+	* src/findkey.c: Likewise.
+	* src/gdbmopen.c: Likewise.
+	* src/gdbmstore.c: Likewise.
+	* src/testgdbm.c: Likewise.
+	* src/update.c: Likewise.
+	
+2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/gdbmopen.c (gdbm_open): Initialize memory used for file
+	header.  This fixes bug #151.
+
+2011-08-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement multi-character commands in testgdbm.
+	
+	* bootstrap (get_po): Discard output from cmp.
+	* src/testgdbm.c: Implement multi-character commands.
+	* doc/gdbm.texinfo: Update.
+
+2011-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* bootstrap: Get PO files; create LINGUAS list
+	* po/.cvsignore: Add LINGUAS.
+
+2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Make sure errno is preserved, if it can contain details about the
+	gdbm error.
+	
+	* src/gdbmdefs.h (SAVE_ERRNO): New macro.
+	* src/gdbmopen.c: Use SAVE_ERRNO where it is important to
+	preserve system errno.
+	* src/mmap.c: Likewise.
+		
+	* doc/gdbm.texinfo: Document which gdbm errors can
+	be detailed by inspecting the system errno.
+
+2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
+	Introduce new error code.
+	
+	* configure.ac, NEWS: Raise patchlevel to 90.
+	* src/gdbm.h.in: Enclose entire file in conditional
+	extern "C".
+	(GDBM_FILE_STAT_ERROR): New error code.
+	(_GDBM_MAX_ERRNO): Update.
+	* src/gdbmerrno.c (gdbm_errlist): Update.
+	* src/gdbmopen.c: Set GDBM_FILE_STAT_ERROR on fstat
+	failure.
+	* src/gdbmreorg.c: Likewise.
+	* src/mmap.c: Likewise.
+	* src/systems.h: Include errno.h
+	* gdbm.texinfo: Document GDBM_FILE_STAT_ERROR.
+	
+2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Minor housekeeping for Gnits compliance.
+	
+	* README-alpha: New file.
+	* README-hacking: New file.
+	* bootstrap: Update.
+
+2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Internationalization.
+	
+	* Makefile.am (SUBDIRS): Add po.
+	(EXTRA_DIST): Add build-aux/config.rpath.
+	* configure.ac (AC_CONFIG_FILES): Add po/Makefile.in.
+	* bootstrap: New file.
+	* src/Makefile.am (AM_CPPFLAGS): Define LOCALEDIR
+	(noinst_HEADERS): Add gettext.h
+	(LIBADD): New variable.
+	* src/gettext.h: New file.
+	* po/.cvsignore: New file.
+	* po/Makevars: New file.
+	* po/POTFILES.in: New file.
+	* src/gdbmdefs.h: Define DEFAULT_TEXT_DOMAIN, _, N_
+	Include gettext.h
+	* src/bucket.c: Add NLS markers.
+	* src/falloc.c: Likewise.
+	* src/findkey.c: Likewise.
+	* src/gdbmerrno.c: Likewise.
+	* src/gdbmfetch.c: Likewise.
+	* src/gdbmseq.c: Likewise.
+	* src/gdbmstore.c: Likewise.
+	* src/update.c: Likewise.
+	* src/testgdbm.c: Add NLS markers.
+	(main): Initialize I18N.
+
+2011-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* compat/Makefile.am (libgdbm_compat_la_LIBADD): Link against
+	libgdbm. Suggested by Adam Sampson.
+
+2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Improve release checking: use gnits.
+	
+	* configure.ac (AM_INIT_AUTOMAKE): Use gnits.
+	(AC_INIT): Remove extra quoting from around version number
+	to pacify gnits.
+	* THANKS: New file.
+
+2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
+	Verify preprocessor directives. Pass them through cppi to
+	reflect their nesting level. Affected files:
+
+	* src/flatfile.c
+	* src/gdbmconst.h
+	* src/gdbm.h.in
+	* src/gdbmconst.h
+	* src/gdbmopen.c
+	* src/gdbmreorg.c
+	* src/lock.c
+	* src/mmap.c
+	* src/systems.h
+	* src/testgdbm.c
+
 2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* NEWS, configure.ac: Version 1.9.1
 
 2011-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
-
+	
 	Bugfixes (pointed out by Matthew Burgess
 	<matthew@linuxfromscratch.org>).
 	

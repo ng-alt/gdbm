@@ -24,11 +24,11 @@
 
 /* Determine our native magic number and bail if we can't. */
 #if SIZEOF_OFF_T == 4
-#define GDBM_MAGIC	GDBM_MAGIC32
+# define GDBM_MAGIC	GDBM_MAGIC32
 #elif SIZEOF_OFF_T == 8
-#define GDBM_MAGIC	GDBM_MAGIC64
+# define GDBM_MAGIC	GDBM_MAGIC64
 #else
-#error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
+# error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
 #endif
 
 /* Initialize dbm system.  FILE is a pointer to the file name.  If the file
@@ -58,13 +58,14 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   GDBM_FILE dbf;		/* The record to return. */
   struct stat file_stat;	/* Space for the stat information. */
   int         len;		/* Length of the file name. */
-  int         num_bytes;	/* Used in reading and writing. */
   off_t       file_pos;		/* Used with seeks. */
   int	      file_block_size;	/* Block size to use for a new file. */
   int 	      index;		/* Used as a loop index. */
   char        need_trunc;	/* Used with GDBM_NEWDB and locking to avoid
 				   truncating a file from under a reader. */
-
+  int         rc;               /* temporary error code */ 
+  int         fbits = 0;        /* additional bits for open(2) flags */
+  
   /* Initialize the gdbm_errno variable. */
   gdbm_errno = GDBM_NO_ERROR;
 
@@ -120,40 +121,54 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     {
       dbf->file_locking = FALSE;
     }
-
+  if (flags & GDBM_CLOEXEC)
+    {
+      fbits = O_CLOEXEC;
+      dbf->cloexec = TRUE;
+    }
+  else
+    dbf->cloexec = FALSE;
+  
   /* Open the file. */
   need_trunc = FALSE;
   switch (flags & GDBM_OPENMASK)
     {
       case GDBM_READER:
-	dbf->desc = open (dbf->name, O_RDONLY, 0);
+	dbf->desc = open (dbf->name, O_RDONLY|fbits, 0);
 	break;
 
       case GDBM_WRITER:
-	dbf->desc = open (dbf->name, O_RDWR, 0);
+	dbf->desc = open (dbf->name, O_RDWR|fbits, 0);
 	break;
 
       case GDBM_NEWDB:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
 	need_trunc = TRUE;
 	break;
 
       default:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
 	break;
 
     }
   if (dbf->desc < 0)
     {
-      free (dbf->name);
-      free (dbf);
+      SAVE_ERRNO (free (dbf->name);
+                  free (dbf));
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
       return NULL;
     }
 
   /* Get the status of the file. */
-  fstat (dbf->desc, &file_stat);
-
+  if (fstat (dbf->desc, &file_stat))
+    {
+      SAVE_ERRNO (close (dbf->desc);
+		  free (dbf->name);
+		  free (dbf));
+      gdbm_errno = GDBM_FILE_STAT_ERROR;
+      return NULL;
+    }
+  
   /* Zero-length file can't be a reader... */
   if (((flags & GDBM_OPENMASK) == GDBM_READER) && (file_stat.st_size == 0))
     {
@@ -203,8 +218,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       else
 	file_block_size = block_size;
 
-      /* Get space for the file header. */
-      dbf->header = (gdbm_file_header *) malloc (file_block_size);
+      /* Get space for the file header. It will be written to disk, so
+         make sure there's no garbage in it. */
+      dbf->header = (gdbm_file_header *) calloc (1, file_block_size);
       if (dbf->header == NULL)
 	{
 	  gdbm_close (dbf);
@@ -274,29 +290,29 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
       /* Write initial configuration to the file. */
       /* Block 0 is the file header and active avail block. */
-      num_bytes = __write (dbf, dbf->header, dbf->header->block_size);
-      if (num_bytes != dbf->header->block_size)
+      rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 
       /* Block 1 is the initial bucket directory. */
-      num_bytes = __write (dbf, dbf->dir, dbf->header->dir_size);
-      if (num_bytes != dbf->header->dir_size)
+      rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 
       /* Block 2 is the only bucket. */
-      num_bytes = __write (dbf, dbf->bucket, dbf->header->bucket_size);
-      if (num_bytes != dbf->header->bucket_size)
+      rc = _gdbm_full_write (dbf, dbf->bucket, dbf->header->bucket_size);
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 
@@ -313,11 +329,11 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       gdbm_file_header partial_header;  /* For the first part of it. */
 
       /* Read the partial file header. */
-      num_bytes = __read (dbf, &partial_header, sizeof (gdbm_file_header));
-      if (num_bytes != sizeof (gdbm_file_header))
+      rc = _gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header));
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_READ_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 
@@ -352,12 +368,12 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 	  return NULL;
 	}
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
-      num_bytes = __read (dbf, &dbf->header->avail.av_table[1],
-			  dbf->header->block_size-sizeof (gdbm_file_header));
-      if (num_bytes != dbf->header->block_size-sizeof (gdbm_file_header))
+      rc = _gdbm_full_read (dbf, &dbf->header->avail.av_table[1],
+			    dbf->header->block_size-sizeof (gdbm_file_header));
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_READ_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 	
@@ -371,19 +387,19 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 	}
 
       /* Read the hash table directory. */
-      file_pos = __lseek (dbf, dbf->header->dir, L_SET);
+      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_SEEK_ERROR;
 	  return NULL;
 	}
 
-      num_bytes = __read (dbf, dbf->dir, dbf->header->dir_size);
-      if (num_bytes != dbf->header->dir_size)
+      rc = _gdbm_full_read (dbf, dbf->dir, dbf->header->dir_size);
+      if (rc)
 	{
-	  gdbm_close (dbf);
-	  gdbm_errno = GDBM_FILE_READ_ERROR;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  gdbm_errno = rc;
 	  return NULL;
 	}
 

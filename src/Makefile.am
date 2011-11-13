@@ -15,13 +15,14 @@
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. 
 
 # Flags
-AM_CPPFLAGS=-DIN_GDBM
+AM_CPPFLAGS=-DIN_GDBM -DLOCALEDIR=\"$(localedir)\"
 
 # Headers
 include_HEADERS = gdbm.h
 noinst_HEADERS = \
  gdbmconst.h\
  gdbmdefs.h\
+ gettext.h\
  proto.h\
  systems.h
 
@@ -33,6 +34,8 @@ VI_REVISION = 0
 VI_AGE      = 0
 
 lib_LTLIBRARIES = libgdbm.la
+libgdbm_la_LIBADD = @LTLIBINTL@
+
 libgdbm_la_SOURCES = \
  gdbmopen.c\
  gdbmdelete.c\
@@ -50,6 +53,7 @@ libgdbm_la_SOURCES = \
  falloc.c\
  findkey.c\
  flatfile.c\
+ fullio.c\
  hash.c\
  lock.c\
  mmap.c\

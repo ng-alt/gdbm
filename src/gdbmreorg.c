@@ -43,7 +43,7 @@ _gdbm_rename (char *old_name, char *new_name)
 
 }
 
-#define rename _gdbm_rename
+# define rename _gdbm_rename
 #endif
 
 
@@ -73,6 +73,13 @@ gdbm_reorganize (GDBM_FILE dbf)
       return -1;
     }
   
+  /* Get the mode for the old file */
+  if (fstat (dbf->desc, &fileinfo))
+    {
+      gdbm_errno = GDBM_FILE_STAT_ERROR;
+      return -1;
+    }
+  
   /* Initialize the gdbm_errno variable. */
   gdbm_errno = GDBM_NO_ERROR;
 
@@ -94,9 +101,9 @@ gdbm_reorganize (GDBM_FILE dbf)
     }
   new_name[len] = '#';
 
-  /* Get the mode for the old file and open the new database. */
-  fstat (dbf->desc, &fileinfo);
-  new_dbf = gdbm_open (new_name, dbf->header->block_size, GDBM_WRCREAT,
+  /* Open the new database. */  
+  new_dbf = gdbm_open (new_name, dbf->header->block_size,
+		       GDBM_WRCREAT | (dbf->cloexec ? GDBM_CLOEXEC : 0),
 		       fileinfo.st_mode, dbf->fatal_err);
 
   if (new_dbf == NULL)

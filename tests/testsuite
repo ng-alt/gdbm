@@ -621,7 +621,7 @@ at_change_dir=false
 # List of the tested programs.
 at_tested=''
 # List of the all the test groups.
-at_groups_all=' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15'
+at_groups_all=' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22'
 # As many question marks as there are digits in the last test group number.
 # Used to normalize the test group numbers so that `ls' lists them in
 # numerical order.
@@ -635,13 +635,20 @@ at_help_all="1;version.at:17;gdbm version;;
 6;delete01.at:17;delete: non existing record;gdbm delete delete01;
 7;delete02.at:17;delete: all records;gdbm delete delete02;
 8;dbmcreate00.at:17;create database;dbm create create00 dbmcreate00;
-9;dbmfetch00.at:17;fetch a record;dbm fetch fetch00 dbmfetch00;
-10;dbmfetch01.at:17;fetch: nonexisting record;dbm fetch fetch01 dbmfetch01;
-11;dbmdel00.at:17;delete a record;dbm delete delete00 dbmdel00;
-12;dbmdel01.at:17;delete: non existing record;dbm delete delete01 dbmdel01;
-13;dbmdel02.at:17;delete: all records;dbm delete delete02 dbmdel02;
-14;setopt00.at:17;setopt;setopt setopt00;
-15;setopt01.at:17;setopt: mmap options;setopt setopt01 mmap;
+9;dbmcvt.at:17;converting a 1.8-style database;dbm fetch cvt;
+10;dbmfetch00.at:17;fetch a record;dbm fetch fetch00 dbmfetch00;
+11;dbmfetch01.at:17;fetch: nonexisting record;dbm fetch fetch01 dbmfetch01;
+12;dbmfetch02.at:17;fetch from a read-only database;dbm fetch fetch02 dbmfetch02;
+13;dbmfetch03.at:17;fetch from a read-only 1.8-style database;dbm fetch fetch03 dbmfetch03;
+14;dbmdel00.at:17;delete a record;dbm delete delete00 dbmdel00;
+15;dbmdel01.at:17;delete: non existing record;dbm delete delete01 dbmdel01;
+16;dbmdel02.at:17;delete: all records;dbm delete delete02 dbmdel02;
+17;setopt00.at:17;setopt;setopt setopt00;
+18;setopt01.at:17;setopt: mmap options;setopt setopt01 mmap;
+19;cloexec00.at:17;cloexec: gdbm_open;gdbm gdbm_open cloexec cloexec00;
+20;cloexec01.at:17;cloexec: gdbm_reorganize;gdbm gdbm_reorganize cloexec cloexec01;
+21;cloexec02.at:17;cloexec: dbm_open;ndbm dbm_open cloexec cloexec02;
+22;cloexec03.at:17;cloexec: dbm_open -creat;ndbm dbm_open cloexec cloexec03;
 "
 
 # at_func_validate_ranges [NAME...]
@@ -653,7 +660,7 @@ at_func_validate_ranges ()
   for at_grp
   do
     eval at_value=\$$at_grp
-    if test $at_value -lt 1 || test $at_value -gt 15; then
+    if test $at_value -lt 1 || test $at_value -gt 22; then
       $as_echo "invalid test group: $at_value" >&2
       exit 1
     fi
@@ -890,7 +897,7 @@ fi
 # List of tests.
 if $at_list_p; then
   cat <<_ATEOF || at_write_fail=1
-gdbm 1.9.1 test suite test groups:
+gdbm 1.10 test suite test groups:
 
  NUM: FILE-NAME:LINE     TEST-GROUP-NAME
       KEYWORDS
@@ -919,7 +926,7 @@ _ATEOF
   exit $at_write_fail
 fi
 if $at_version_p; then
-  $as_echo "$as_me (gdbm 1.9.1)" &&
+  $as_echo "$as_me (gdbm 1.10)" &&
   cat <<\_ACEOF || at_write_fail=1
 
 Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
@@ -944,9 +951,12 @@ at_banner_text_1="GDBM interface"
 # Banner 2. testsuite.at:46
 # Category starts at test group 8.
 at_banner_text_2="Compatibility library (dbm/ndbm)"
-# Banner 3. testsuite.at:57
-# Category starts at test group 14.
+# Banner 3. testsuite.at:61
+# Category starts at test group 17.
 at_banner_text_3="DB options"
+# Banner 4. testsuite.at:66
+# Category starts at test group 19.
+at_banner_text_4="Cloexec"
 
 # Take any -C into account.
 if $at_change_dir ; then
@@ -1110,15 +1120,15 @@ exec 5>>"$at_suite_log"
 
 # Banners and logs.
 cat <<\_ASBOX
-## ---------------------- ##
-## gdbm 1.9.1 test suite. ##
-## ---------------------- ##
+## --------------------- ##
+## gdbm 1.10 test suite. ##
+## --------------------- ##
 _ASBOX
 {
   cat <<\_ASBOX
-## ---------------------- ##
-## gdbm 1.9.1 test suite. ##
-## ---------------------- ##
+## --------------------- ##
+## gdbm 1.10 test suite. ##
+## --------------------- ##
 _ASBOX
   echo
 
@@ -1849,7 +1859,7 @@ _ASBOX
   $as_echo "Please send \`${at_testdir+${at_testdir}/}$as_me.log' and all information you think might help:
 
    To: <bug-gdbm@gnu.org>
-   Subject: [gdbm 1.9.1] $as_me: $at_fail_list${at_fail_list:+ failed${at_xpass_list:+, }}$at_xpass_list${at_xpass_list:+ passed unexpectedly}
+   Subject: [gdbm 1.10] $as_me: $at_fail_list${at_fail_list:+ failed${at_xpass_list:+, }}$at_xpass_list${at_xpass_list:+ passed unexpectedly}
 "
   if test $at_debug_p = false; then
     echo
@@ -1891,8 +1901,8 @@ fi
 at_status=$?
 at_failed=false
 at_func_diff_devnull "$at_stderr" || at_failed=:
-echo >>"$at_stdout"; $as_echo "1.9.1
-1.9.1
+echo >>"$at_stdout"; $as_echo "1.10.0
+1.10.0
 " | \
   $at_diff - "$at_stdout" || at_failed=:
 at_func_check_status 0 $at_status "$at_srcdir/version.at:19"
@@ -2331,15 +2341,87 @@ $at_traceon; }
 at_status=`cat "$at_status_file"`
 #AT_STOP_8
 #AT_START_9
-# 9. dbmfetch00.at:17: fetch a record
-at_setup_line='dbmfetch00.at:17'
+# 9. dbmcvt.at:17: converting a 1.8-style database
+at_setup_line='dbmcvt.at:17'
 at_func_banner 2
-at_desc="fetch a record"
-$at_quiet $as_echo_n "  9: $at_desc                                 "
+at_desc="converting a 1.8-style database"
+$at_quiet $as_echo_n "  9: $at_desc                "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "9. dbmfetch00.at:17: testing ..."
+  $as_echo "9. dbmcvt.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/dbmcvt.at:20:
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+dtfetch test 6
+cmp test.pag test.dir >/dev/null 2>&1 && exit 1
+exit 0
+"
+echo dbmcvt.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+dtfetch test 6
+cmp test.pag test.dir >/dev/null 2>&1 && exit 1
+exit 0
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+dtfetch test 6
+cmp test.pag test.dir >/dev/null 2>&1 && exit 1
+exit 0
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+echo >>"$at_stdout"; $as_echo "six
+" | \
+  $at_diff - "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/dbmcvt.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_9
+#AT_START_10
+# 10. dbmfetch00.at:17: fetch a record
+at_setup_line='dbmfetch00.at:17'
+at_func_banner 2
+at_desc="fetch a record"
+$at_quiet $as_echo_n " 10: $at_desc                                 "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "10. dbmfetch00.at:17: testing ..."
   $at_traceon
 
 
@@ -2391,17 +2473,17 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_9
-#AT_START_10
-# 10. dbmfetch01.at:17: fetch: nonexisting record
+#AT_STOP_10
+#AT_START_11
+# 11. dbmfetch01.at:17: fetch: nonexisting record
 at_setup_line='dbmfetch01.at:17'
 at_func_banner 2
 at_desc="fetch: nonexisting record"
-$at_quiet $as_echo_n " 10: $at_desc                      "
+$at_quiet $as_echo_n " 11: $at_desc                      "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "10. dbmfetch01.at:17: testing ..."
+  $as_echo "11. dbmfetch01.at:17: testing ..."
   $at_traceon
 
 
@@ -2451,17 +2533,157 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_10
-#AT_START_11
-# 11. dbmdel00.at:17: delete a record
-at_setup_line='dbmdel00.at:17'
+#AT_STOP_11
+#AT_START_12
+# 12. dbmfetch02.at:17: fetch from a read-only database
+at_setup_line='dbmfetch02.at:17'
 at_func_banner 2
-at_desc="delete a record"
-$at_quiet $as_echo_n " 11: $at_desc                                "
+at_desc="fetch from a read-only database"
+$at_quiet $as_echo_n " 12: $at_desc                "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "11. dbmdel00.at:17: testing ..."
+  $as_echo "12. dbmfetch02.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/dbmfetch02.at:20:
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+chmod -w test.dir test.pag
+dtfetch test 6 10
+"
+echo dbmfetch02.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+chmod -w test.dir test.pag
+dtfetch test 6 10
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload test
+chmod -w test.dir test.pag
+dtfetch test 6 10
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+echo >>"$at_stdout"; $as_echo "six
+ten
+" | \
+  $at_diff - "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/dbmfetch02.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_12
+#AT_START_13
+# 13. dbmfetch03.at:17: fetch from a read-only 1.8-style database
+at_setup_line='dbmfetch03.at:17'
+at_func_banner 2
+at_desc="fetch from a read-only 1.8-style database"
+$at_quiet $as_echo_n " 13: $at_desc      "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "13. dbmfetch03.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/dbmfetch03.at:20:
+
+test $COMPAT -eq 1 || exit 77
+
+mkdir dir
+cd dir
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+chmod -w test.dir test.pag .
+dtfetch test 6 10
+"
+echo dbmfetch03.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+
+test $COMPAT -eq 1 || exit 77
+
+mkdir dir
+cd dir
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+chmod -w test.dir test.pag .
+dtfetch test 6 10
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+
+test $COMPAT -eq 1 || exit 77
+
+mkdir dir
+cd dir
+num2word 1:10 | dtload test
+rm test.dir
+ln test.pag test.dir
+chmod -w test.dir test.pag .
+dtfetch test 6 10
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+echo >>"$at_stdout"; $as_echo "six
+ten
+" | \
+  $at_diff - "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/dbmfetch03.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_13
+#AT_START_14
+# 14. dbmdel00.at:17: delete a record
+at_setup_line='dbmdel00.at:17'
+at_func_banner 2
+at_desc="delete a record"
+$at_quiet $as_echo_n " 14: $at_desc                                "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "14. dbmdel00.at:17: testing ..."
   $at_traceon
 
 
@@ -2531,17 +2753,17 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_11
-#AT_START_12
-# 12. dbmdel01.at:17: delete: non existing record
+#AT_STOP_14
+#AT_START_15
+# 15. dbmdel01.at:17: delete: non existing record
 at_setup_line='dbmdel01.at:17'
 at_func_banner 2
 at_desc="delete: non existing record"
-$at_quiet $as_echo_n " 12: $at_desc                    "
+$at_quiet $as_echo_n " 15: $at_desc                    "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "12. dbmdel01.at:17: testing ..."
+  $as_echo "15. dbmdel01.at:17: testing ..."
   $at_traceon
 
 
@@ -2600,17 +2822,17 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_12
-#AT_START_13
-# 13. dbmdel02.at:17: delete: all records
+#AT_STOP_15
+#AT_START_16
+# 16. dbmdel02.at:17: delete: all records
 at_setup_line='dbmdel02.at:17'
 at_func_banner 2
 at_desc="delete: all records"
-$at_quiet $as_echo_n " 13: $at_desc                            "
+$at_quiet $as_echo_n " 16: $at_desc                            "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "13. dbmdel02.at:17: testing ..."
+  $as_echo "16. dbmdel02.at:17: testing ..."
   $at_traceon
 
 
@@ -2661,17 +2883,17 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_13
-#AT_START_14
-# 14. setopt00.at:17: setopt
+#AT_STOP_16
+#AT_START_17
+# 17. setopt00.at:17: setopt
 at_setup_line='setopt00.at:17'
 at_func_banner 3
 at_desc="setopt"
-$at_quiet $as_echo_n " 14: $at_desc                                         "
+$at_quiet $as_echo_n " 17: $at_desc                                         "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "14. setopt00.at:17: testing ..."
+  $as_echo "17. setopt00.at:17: testing ..."
   $at_traceon
 
 
@@ -2741,17 +2963,17 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_14
-#AT_START_15
-# 15. setopt01.at:17: setopt: mmap options
+#AT_STOP_17
+#AT_START_18
+# 18. setopt01.at:17: setopt: mmap options
 at_setup_line='setopt01.at:17'
 at_func_banner 3
 at_desc="setopt: mmap options"
-$at_quiet $as_echo_n " 15: $at_desc                           "
+$at_quiet $as_echo_n " 18: $at_desc                           "
 at_xfail=no
 echo "#                             -*- compilation -*-" >> "$at_group_log"
 (
-  $as_echo "15. setopt01.at:17: testing ..."
+  $as_echo "18. setopt01.at:17: testing ..."
   $at_traceon
 
 
@@ -2804,4 +3026,209 @@ $at_traceon; }
   $at_times_p && times >"$at_times_file"
 ) 5>&1 2>&1 | eval $at_tee_pipe
 at_status=`cat "$at_status_file"`
-#AT_STOP_15
+#AT_STOP_18
+#AT_START_19
+# 19. cloexec00.at:17: cloexec: gdbm_open
+at_setup_line='cloexec00.at:17'
+at_func_banner 4
+at_desc="cloexec: gdbm_open"
+$at_quiet $as_echo_n " 19: $at_desc                             "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "19. cloexec00.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/cloexec00.at:20:
+g_open_ce \"\$abs_builddir/fdop\"
+"
+echo cloexec00.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+g_open_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+g_open_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+at_func_diff_devnull "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/cloexec00.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_19
+#AT_START_20
+# 20. cloexec01.at:17: cloexec: gdbm_reorganize
+at_setup_line='cloexec01.at:17'
+at_func_banner 4
+at_desc="cloexec: gdbm_reorganize"
+$at_quiet $as_echo_n " 20: $at_desc                       "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "20. cloexec01.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/cloexec01.at:20:
+g_reorg_ce \"\$abs_builddir/fdop\"
+"
+echo cloexec01.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+g_reorg_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+g_reorg_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+at_func_diff_devnull "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/cloexec01.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_20
+#AT_START_21
+# 21. cloexec02.at:17: cloexec: dbm_open
+at_setup_line='cloexec02.at:17'
+at_func_banner 4
+at_desc="cloexec: dbm_open"
+$at_quiet $as_echo_n " 21: $at_desc                              "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "21. cloexec02.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/cloexec02.at:20:
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload file
+d_creat_ce \"\$abs_builddir/fdop\"
+"
+echo cloexec02.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload file
+d_creat_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+
+test $COMPAT -eq 1 || exit 77
+
+num2word 1:10 | dtload file
+d_creat_ce "$abs_builddir/fdop"
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+at_func_diff_devnull "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/cloexec02.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_21
+#AT_START_22
+# 22. cloexec03.at:17: cloexec: dbm_open -creat
+at_setup_line='cloexec03.at:17'
+at_func_banner 4
+at_desc="cloexec: dbm_open -creat"
+$at_quiet $as_echo_n " 22: $at_desc                       "
+at_xfail=no
+echo "#                             -*- compilation -*-" >> "$at_group_log"
+(
+  $as_echo "22. cloexec03.at:17: testing ..."
+  $at_traceon
+
+
+
+{ $at_traceoff
+$as_echo "$at_srcdir/cloexec03.at:20:
+
+test $COMPAT -eq 1 || exit 77
+
+d_creat_ce \"\$abs_builddir/fdop\" -creat
+"
+echo cloexec03.at:20 >"$at_check_line_file"
+
+if { echo 'Not enabling shell tracing (command contains an embedded newline)'
+   false; }; then
+  ( $at_traceon;
+
+test $COMPAT -eq 1 || exit 77
+
+d_creat_ce "$abs_builddir/fdop" -creat
+ ) >"$at_stdout" 2>"$at_stder1"
+  at_func_filter_trace $?
+else
+  ( :;
+
+test $COMPAT -eq 1 || exit 77
+
+d_creat_ce "$abs_builddir/fdop" -creat
+ ) >"$at_stdout" 2>"$at_stderr"
+fi
+at_status=$?
+at_failed=false
+at_func_diff_devnull "$at_stderr" || at_failed=:
+at_func_diff_devnull "$at_stdout" || at_failed=:
+at_func_check_status 0 $at_status "$at_srcdir/cloexec03.at:20"
+
+$at_failed && at_func_log_failure
+$at_traceon; }
+
+
+  $at_traceoff
+  $at_times_p && times >"$at_times_file"
+) 5>&1 2>&1 | eval $at_tee_pipe
+at_status=`cat "$at_status_file"`
+#AT_STOP_22

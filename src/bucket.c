@@ -52,8 +52,8 @@ _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
 void
 _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 {
+  int rc;
   off_t bucket_adr;	/* The address of the correct hash bucket.  */
-  int   num_bytes;	/* The number of bytes read. */
   off_t	file_pos;	/* The return address for lseek. */
   int   index;		/* Loop index. */
 
@@ -64,7 +64,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   if (dbf->bucket_cache == NULL)
     {
       if(_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
-        _gdbm_fatal(dbf, "couldn't init cache");
+        _gdbm_fatal(dbf, _("couldn't init cache"));
     }
 
   /* Is that one is not already current, we must find it. */
@@ -92,13 +92,13 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       dbf->cache_entry->ca_changed = FALSE;
 
       /* Read the bucket. */
-      file_pos = __lseek (dbf, bucket_adr, L_SET);
+      file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
       if (file_pos != bucket_adr)
-	_gdbm_fatal (dbf, "lseek error");
-
-      num_bytes = __read (dbf, dbf->bucket, dbf->header->bucket_size);
-      if (num_bytes != dbf->header->bucket_size)
-	_gdbm_fatal (dbf, "read error");
+	_gdbm_fatal (dbf, _("lseek error"));
+      
+      rc = _gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size);
+      if (rc)
+	_gdbm_fatal (dbf, gdbm_strerror (rc));
     }
 
   return;
@@ -145,7 +145,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
   if (dbf->bucket_cache == NULL)
     {
       if(_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
-        _gdbm_fatal(dbf, "couldn't init cache");
+        _gdbm_fatal(dbf, _("couldn't init cache"));
     }
 
   while (dbf->bucket->count == dbf->header->bucket_elems)
@@ -185,7 +185,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dir_size = dbf->header->dir_size * 2;
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
 	  new_dir  = (off_t *) malloc (dir_size);
-	  if (new_dir == NULL) _gdbm_fatal (dbf, "malloc error");
+	  if (new_dir == NULL) _gdbm_fatal (dbf, _("malloc error"));
 	  for (index = 0;
 	  	index < dbf->header->dir_size/sizeof (off_t); index++)
 	    {
@@ -303,15 +303,16 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 void
 _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
 {
-  int  num_bytes;	/* The return value for write. */
+  int rc;
   off_t file_pos;	/* The return value for lseek. */
   
-  file_pos = __lseek (dbf, ca_entry->ca_adr, L_SET);
+  file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
   if (file_pos != ca_entry->ca_adr)
-    _gdbm_fatal (dbf, "lseek error");
-  num_bytes = __write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);
-  if (num_bytes != dbf->header->bucket_size)
-    _gdbm_fatal (dbf, "write error");
+    _gdbm_fatal (dbf, _("lseek error"));
+  rc = _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
+
   ca_entry->ca_changed = FALSE;
   ca_entry->ca_data.hash_val = -1;
   ca_entry->ca_data.elem_loc = -1;

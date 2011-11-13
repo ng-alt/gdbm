@@ -50,17 +50,22 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-check_PROGRAMS = gtdel$(EXEEXT) gtdump$(EXEEXT) gtfetch$(EXEEXT) \
+check_PROGRAMS = fdop$(EXEEXT) g_open_ce$(EXEEXT) g_reorg_ce$(EXEEXT) \
+	gtdel$(EXEEXT) gtdump$(EXEEXT) gtfetch$(EXEEXT) \
 	gtload$(EXEEXT) gtopt$(EXEEXT) gtver$(EXEEXT) \
 	num2word$(EXEEXT) $(am__EXEEXT_1)
 subdir = tests
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/atlocal.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
+	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/intlmacosx.m4 \
+	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
 	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -68,13 +73,18 @@ CONFIG_HEADER = $(top_builddir)/autoconf.h
 CONFIG_CLEAN_FILES = atlocal
 CONFIG_CLEAN_VPATH_FILES =
 @COMPAT_OPT_TRUE@am__EXEEXT_1 = dtload$(EXEEXT) dtdump$(EXEEXT) \
-@COMPAT_OPT_TRUE@	dtfetch$(EXEEXT) dtdel$(EXEEXT)
-dtdel_SOURCES = dtdel.c
-dtdel_OBJECTS = dtdel.$(OBJEXT)
-dtdel_DEPENDENCIES = ../src/libgdbm.la ../compat/libgdbm_compat.la
+@COMPAT_OPT_TRUE@	dtfetch$(EXEEXT) dtdel$(EXEEXT) \
+@COMPAT_OPT_TRUE@	d_creat_ce$(EXEEXT)
+d_creat_ce_SOURCES = d_creat_ce.c
+d_creat_ce_OBJECTS = d_creat_ce.$(OBJEXT)
+d_creat_ce_DEPENDENCIES = ../src/libgdbm.la \
+	../compat/libgdbm_compat.la
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
+dtdel_SOURCES = dtdel.c
+dtdel_OBJECTS = dtdel.$(OBJEXT)
+dtdel_DEPENDENCIES = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdump_SOURCES = dtdump.c
 dtdump_OBJECTS = dtdump.$(OBJEXT)
 dtdump_DEPENDENCIES = ../src/libgdbm.la ../compat/libgdbm_compat.la
@@ -84,6 +94,15 @@ dtfetch_DEPENDENCIES = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtload_SOURCES = dtload.c
 dtload_OBJECTS = dtload.$(OBJEXT)
 dtload_DEPENDENCIES = ../src/libgdbm.la ../compat/libgdbm_compat.la
+fdop_SOURCES = fdop.c
+fdop_OBJECTS = fdop.$(OBJEXT)
+fdop_LDADD = $(LDADD)
+g_open_ce_SOURCES = g_open_ce.c
+g_open_ce_OBJECTS = g_open_ce.$(OBJEXT)
+g_open_ce_DEPENDENCIES = ../src/libgdbm.la
+g_reorg_ce_SOURCES = g_reorg_ce.c
+g_reorg_ce_OBJECTS = g_reorg_ce.$(OBJEXT)
+g_reorg_ce_DEPENDENCIES = ../src/libgdbm.la
 gtdel_SOURCES = gtdel.c
 gtdel_OBJECTS = gtdel.$(OBJEXT)
 gtdel_DEPENDENCIES = ../src/libgdbm.la
@@ -131,10 +150,12 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = dtdel.c dtdump.c dtfetch.c dtload.c gtdel.c gtdump.c \
-	gtfetch.c gtload.c gtopt.c gtver.c num2word.c
-DIST_SOURCES = dtdel.c dtdump.c dtfetch.c dtload.c gtdel.c gtdump.c \
-	gtfetch.c gtload.c gtopt.c gtver.c num2word.c
+SOURCES = d_creat_ce.c dtdel.c dtdump.c dtfetch.c dtload.c fdop.c \
+	g_open_ce.c g_reorg_ce.c gtdel.c gtdump.c gtfetch.c gtload.c \
+	gtopt.c gtver.c num2word.c
+DIST_SOURCES = d_creat_ce.c dtdel.c dtdump.c dtfetch.c dtload.c fdop.c \
+	g_open_ce.c g_reorg_ce.c gtdel.c gtdump.c gtfetch.c gtload.c \
+	gtopt.c gtver.c num2word.c
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -170,22 +191,34 @@ GDBM183_LIBRARY = @GDBM183_LIBRARY@
 GDBM_VERSION_MAJOR = @GDBM_VERSION_MAJOR@
 GDBM_VERSION_MINOR = @GDBM_VERSION_MINOR@
 GDBM_VERSION_PATCH = @GDBM_VERSION_PATCH@
+GETTEXT_MACRO_VERSION = @GETTEXT_MACRO_VERSION@
+GMSGFMT = @GMSGFMT@
+GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+INTLLIBS = @INTLLIBS@
+INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBICONV = @LIBICONV@
+LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
+LTLIBICONV = @LTLIBICONV@
+LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+MSGFMT = @MSGFMT@
+MSGFMT_015 = @MSGFMT_015@
+MSGMERGE = @MSGMERGE@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -199,12 +232,17 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+POSUB = @POSUB@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+USE_NLS = @USE_NLS@
 VERSION = @VERSION@
+XGETTEXT = @XGETTEXT@
+XGETTEXT_015 = @XGETTEXT_015@
+XGETTEXT_EXTRA_OPTIONS = @XGETTEXT_EXTRA_OPTIONS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -267,12 +305,19 @@ MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
 #
 TESTSUITE_AT = \
  testsuite.at\
+ cloexec00.at\
+ cloexec01.at\
+ cloexec02.at\
+ cloexec03.at\
  dbmcreate00.at\
  dbmdel00.at\
  dbmdel01.at\
  dbmdel02.at\
+ dbmcvt.at\
  dbmfetch00.at\
  dbmfetch01.at\
+ dbmfetch02.at\
+ dbmfetch03.at\
  create00.at\
  delete00.at\
  delete01.at\
@@ -291,7 +336,7 @@ AUTOTEST = $(AUTOM4TE) --language=autotest
 #installcheck-local:
 #	$(SHELL) $(TESTSUITE) AUTOTEST_PATH=$(exec_prefix)/bin
 @COMPAT_OPT_TRUE@DBMINCLUDES = -I$(top_srcdir)/compat
-@COMPAT_OPT_TRUE@DBMPROGS = dtload dtdump dtfetch dtdel
+@COMPAT_OPT_TRUE@DBMPROGS = dtload dtdump dtfetch dtdel d_creat_ce
 INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
 noinst_HEADERS = progname.h
 gtdel_LDADD = ../src/libgdbm.la
@@ -300,10 +345,13 @@ gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la
 gtver_LDADD = ../src/libgdbm.la
 gtopt_LDADD = ../src/libgdbm.la
+g_open_ce_LDADD = ../src/libgdbm.la
+g_reorg_ce_LDADD = ../src/libgdbm.la
 dtload_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdump_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtfetch_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdel_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
+d_creat_ce_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 all: all-am
 
 .SUFFIXES:
@@ -317,9 +365,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits tests/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu tests/Makefile
+	  $(AUTOMAKE) --gnits tests/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -349,6 +397,9 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+d_creat_ce$(EXEEXT): $(d_creat_ce_OBJECTS) $(d_creat_ce_DEPENDENCIES) 
+	@rm -f d_creat_ce$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(d_creat_ce_OBJECTS) $(d_creat_ce_LDADD) $(LIBS)
 dtdel$(EXEEXT): $(dtdel_OBJECTS) $(dtdel_DEPENDENCIES) 
 	@rm -f dtdel$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(dtdel_OBJECTS) $(dtdel_LDADD) $(LIBS)
@@ -361,6 +412,15 @@ dtfetch$(EXEEXT): $(dtfetch_OBJECTS) $(dtfetch_DEPENDENCIES)
 dtload$(EXEEXT): $(dtload_OBJECTS) $(dtload_DEPENDENCIES) 
 	@rm -f dtload$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(dtload_OBJECTS) $(dtload_LDADD) $(LIBS)
+fdop$(EXEEXT): $(fdop_OBJECTS) $(fdop_DEPENDENCIES) 
+	@rm -f fdop$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(fdop_OBJECTS) $(fdop_LDADD) $(LIBS)
+g_open_ce$(EXEEXT): $(g_open_ce_OBJECTS) $(g_open_ce_DEPENDENCIES) 
+	@rm -f g_open_ce$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(g_open_ce_OBJECTS) $(g_open_ce_LDADD) $(LIBS)
+g_reorg_ce$(EXEEXT): $(g_reorg_ce_OBJECTS) $(g_reorg_ce_DEPENDENCIES) 
+	@rm -f g_reorg_ce$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(g_reorg_ce_OBJECTS) $(g_reorg_ce_LDADD) $(LIBS)
 gtdel$(EXEEXT): $(gtdel_OBJECTS) $(gtdel_DEPENDENCIES) 
 	@rm -f gtdel$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(gtdel_OBJECTS) $(gtdel_LDADD) $(LIBS)
@@ -389,10 +449,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/d_creat_ce.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtdel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtfetch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtload.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/g_open_ce.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/g_reorg_ce.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtdel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtfetch.Po@am__quote@

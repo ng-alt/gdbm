@@ -158,12 +158,12 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 static void
 pop_avail_block (GDBM_FILE dbf)
 {
-  int  num_bytes;		/* For use with the read system call. */
+  int rc;
   off_t file_pos;		/* For use with the lseek system call. */
   avail_elem new_el;
   avail_block *new_blk;
   int index;
-
+  
   if (dbf->header->avail.count == dbf->header->avail.size)
     {
       /* We're kind of stuck here, so we re-split the header in order to
@@ -178,13 +178,14 @@ pop_avail_block (GDBM_FILE dbf)
 
   /* Allocate space for the block. */
   new_blk = (avail_block *) malloc (new_el.av_size);
-  if (new_blk == NULL) _gdbm_fatal(dbf, "malloc failed");
+  if (new_blk == NULL) _gdbm_fatal(dbf, _("malloc failed"));
 
   /* Read the block. */
-  file_pos = __lseek (dbf, new_el.av_adr, L_SET);
-  if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, "lseek error");
-  num_bytes = __read (dbf, new_blk, new_el.av_size);
-  if (num_bytes != new_el.av_size) _gdbm_fatal (dbf, "read error");
+  file_pos = __lseek (dbf, new_el.av_adr, SEEK_SET);
+  if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, _("lseek error"));
+  rc = _gdbm_full_read (dbf, new_blk, new_el.av_size);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
 
   /* Add the elements from the new block to the header. */
   index = 0;
@@ -233,14 +234,13 @@ pop_avail_block (GDBM_FILE dbf)
 static void
 push_avail_block (GDBM_FILE dbf)
 {
-  int  num_bytes;
   int  av_size;
   off_t av_adr;
   int  index;
   off_t file_pos;
   avail_block *temp;
   avail_elem  new_loc;
- 
+  int rc;
 
   /* Caclulate the size of the split block. */
   av_size = ( (dbf->header->avail.size * sizeof (avail_elem)) >> 1)
@@ -256,7 +256,7 @@ push_avail_block (GDBM_FILE dbf)
 
   /* Split the header block. */
   temp = (avail_block *) malloc (av_size);
-  if (temp == NULL) _gdbm_fatal (dbf, "malloc error");
+  if (temp == NULL) _gdbm_fatal (dbf, _("malloc error"));
   /* Set the size to be correct AFTER the pop_avail_block. */
   temp->size = dbf->header->avail.size;
   temp->count = 0;
@@ -278,10 +278,11 @@ push_avail_block (GDBM_FILE dbf)
   _gdbm_free (dbf, new_loc.av_adr, new_loc.av_size);
 
   /* Update the disk. */
-  file_pos = __lseek (dbf, av_adr, L_SET);
-  if (file_pos != av_adr) _gdbm_fatal (dbf, "lseek error");
-  num_bytes = __write (dbf, temp, av_size);
-  if (num_bytes != av_size) _gdbm_fatal (dbf, "write error");
+  file_pos = __lseek (dbf, av_adr, SEEK_SET);
+  if (file_pos != av_adr) _gdbm_fatal (dbf, _("lseek error"));
+  rc = _gdbm_full_write (dbf, temp, av_size);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
   free (temp);
 }
 
